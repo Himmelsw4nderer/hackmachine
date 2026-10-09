@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [{ "Name": "Hackmachine" }],
+        "Category": "Date and Time",
+        "Description": "Big pixel clock in the Hackmachine pastels",
+        "Icon": "clock",
+        "Id": "org.hackmachine.clock",
+        "License": "GPL-3.0-or-later",
+        "Name": "Hackmachine clock",
+        "Version": "1.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

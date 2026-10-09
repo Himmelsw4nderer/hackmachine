@@ -2,8 +2,11 @@
 """Render the Hackmachine wallpaper: dot grid, faint skull, a key cheat-sheet built from
 config/shortcuts.conf, a system card and the rainbow HACKMACHINE banner.
 
-usage: wallpaper.py CONF OUT.svg WIDTHxHEIGHT "Font Family" [panel_height]
+usage: wallpaper.py CONF OUT.svg WIDTHxHEIGHT "Font Family" [panel_height] [--no-skull]
+
+Also writes OUT.json with the boxes of the cards and the banner.
 """
+import json
 import os
 import platform
 import socket
@@ -95,6 +98,7 @@ def split_columns(groups, n=2):
 def main():
     conf, out, size, font = sys.argv[1:5]
     panel = int(sys.argv[5]) if len(sys.argv) > 5 else 44
+    no_skull = "--no-skull" in sys.argv
     W, H = map(int, size.lower().split("x"))
     portrait = H > W  # rotated monitors get a centred, stacked layout
     s = min(W, H) / 1440  # design is drawn at 1440p and scaled
@@ -193,8 +197,9 @@ def main():
         sx, sy = W / 2 - 7 * fs * ADV, sy0 + sc_h + (H - sy0 - sc_h) * 0.30
     else:
         sx, sy = W * 0.36, H * 0.30
-    for i, line in enumerate(SKULL):
-        svg.text(sx, sy + i * fs * 1.25, line, fs, FAINT, opacity=0.55)
+    if not no_skull:
+        for i, line in enumerate(SKULL):
+            svg.text(sx, sy + i * fs * 1.25, line, fs, FAINT, opacity=0.55)
 
     bf = min(22 * s, (W * (0.9 if portrait else 0.55)) / (len(BANNER[0]) * ADV))
     bw = len(BANNER[0]) * bf * ADV
@@ -211,9 +216,13 @@ def main():
         svg.add(f'<text x="{bx:.1f}" y="{by + i*lh:.1f}" font-family="{family}" font-size="{bf:.1f}" '
                 f'xml:space="preserve">{escape(line)}</text>')
     svg.add("</g>")
-    svg.text(bx, by + len(BANNER) * lh + 14 * s, "cozy · colourful · slightly dangerous-looking", 13 * s, MUTED)
-
     Path(out).write_text(svg.render())
+    # Where the cards and the banner landed, so apply.sh can place desktop widgets around them.
+    Path(out).with_suffix(".json").write_text(json.dumps({
+        "size": [W, H], "scale": s, "portrait": portrait,
+        "cards": [round(cx), round(cy), round(card_w), round(sy0 + sc_h - cy)],
+        "banner": [round(bx), round(by - bf), round(bw), round(lh * len(BANNER) + bf)],
+    }))
 
 
 if __name__ == "__main__":

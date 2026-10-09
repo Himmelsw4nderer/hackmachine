@@ -15,7 +15,7 @@ git clone <this repo> ~/proj/kde-rice && cd ~/proj/kde-rice
 ./scripts/uninstall.sh        # back to how things were before the first install
 ```
 
-Options (passed through to `scripts/apply.sh`): `--no-panel` keeps your panels, `--no-widgets` skips the desktop card, `--no-shell` leaves
+Options (passed through to `scripts/apply.sh`): `--no-panel` keeps your panels, `--no-widgets` skips the desktop widgets, `--no-shell` leaves
 `~/.bashrc` alone, `--no-shortcuts` skips the key bindings, `--no-icons` keeps your icon theme.
 
 ## What you get
@@ -28,9 +28,9 @@ Options (passed through to `scripts/apply.sh`): `--no-panel` keeps your panels, 
 | **Fonts** | JetBrains Mono for every UI font, with bold window titles. The Nerd Font build is used if that's the one installed. VT323 is fetched for pixel headings. |
 | **Windows** | `Hackmachine` Aurorae decoration (generated SVG). Cocoa title bar with the title on the left and bracketed `[_] [□] [x]` buttons on the right; close turns coral on hover. The active window gets a 1px lavender ring and inactive ones a hairline. Blur is on. |
 | **Taskbar** | Three floating islands at the bottom of the primary screen: the λ launcher and pinned apps on the left, the clock in the centre, the tray and show-desktop on the right. Each island is a rounded cocoa pill with a hairline border. |
-| **Desktop card** | `APPS // PINNED`, a small custom Plasma widget (`theme/plasmoids/org.hackmachine.apps`) in the bottom-left corner. App tiles are numbered `[01]`… with icon and name in the app's category colour; hovering raises the tile with a coloured bar like the taskbar. Its footer opens the hack menu. |
+| **Desktop widgets** | Three custom Plasma widgets are placed on **every connected screen**, in the space the wallpaper leaves free. On landscape screens: clock on top, apps and system side by side at the bottom. On portrait screens: stacked between the cheat-sheet and the banner. `TIME // LOCAL` is a big VT323 clock, one pastel per digit, with date, ISO week and day of month. `SYS // LIVE` shows CPU/GPU/RAM/disk as `[████░░]` bars with temperatures, network up/down as sparklines, and uptime. `APPS // PINNED` has numbered app tiles that scale with the card; its footer opens the hack menu. |
 | **Tray** | Only network, sound, microphone and battery stay visible. Everything else, Plasma's own entries and app icons alike, goes into the `^` popup. `hm-tray` runs at login and hides tray icons from apps that start later. Each entry is hidden only the first time it appears, so anything you set to "Always shown" stays. Edit `SHOW` in `bin/hm-tray` to change the list. |
-| **Wallpaper** | Rendered **per screen at its real size**, so rotated or portrait monitors get a stacked layout. It has a dot grid, a faint ASCII skull, a **key cheat-sheet**, a `whoami` card and the rainbow `HACKMACHINE` banner. The lock screen gets it too. |
+| **Wallpaper** | Rendered **per screen at its real size**, so rotated or portrait monitors get a stacked layout. It has a dot grid, a faint ASCII skull (landscape only), a **key cheat-sheet**, a `whoami` card and the rainbow `HACKMACHINE` banner. The lock screen gets it too. |
 | **Hack menu** | `Meta+Space` opens a borderless, centred fzf launcher. It shows a rainbow figlet banner, all apps, and lock, log out, reboot and shutdown. |
 | **Terminal** | Konsole profile `Hackmachine`: pastel 16-colour palette, 92% opacity with blur, a `λ ~/path >` prompt and fastfetch with the candy logo. The prompt only applies inside this profile. |
 | **Extras** | Themes for btop and cava (rainbow bars). |
@@ -76,6 +76,7 @@ scripts/wallpaper.py    SVG wallpaper generator (stdlib only), rendered with rsv
 scripts/shortcuts.py    binds/unbinds global shortcuts, prints the cheat-sheet
 scripts/panel.js        Plasma scripting for the taskbar islands
 scripts/apps.py         resolves config/apps.conf to installed .desktop files
+scripts/layout.py       places the desktop widgets on each screen around the wallpaper
 scripts/icons.py        repaints an icon theme, one pastel per icon by category
 scripts/themegen.py     generates the Plasma style and the Aurorae decoration
 config/shortcuts.conf   key bindings + cheat-sheet rows

@@ -36,7 +36,7 @@ changeicons=$(ls /usr/libexec/plasma-changeicons /usr/lib/*/libexec/plasma-chang
 rm -f "$XDG_DATA_HOME/color-schemes/Hackmachine.colors"
 rm -rf "$XDG_DATA_HOME/kwin/scripts/hackmachine-menu" "$XDG_DATA_HOME/aurorae/themes/Hackmachine" \
        "$XDG_DATA_HOME/plasma/desktoptheme/hackmachine" "$XDG_DATA_HOME/icons/Hackmachine" \
-       "$XDG_DATA_HOME/plasma/plasmoids/org.hackmachine.apps" \
+       "$XDG_DATA_HOME"/plasma/plasmoids/org.hackmachine.{apps,clock,sys} \
        "$XDG_DATA_HOME/icons/Hackmachine-Breeze"
 qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 || true
 

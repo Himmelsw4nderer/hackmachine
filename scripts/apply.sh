@@ -190,12 +190,15 @@ render() {  # svg png
   elif have magick; then magick -background none "$1" "$2"
   else die "need rsvg-convert, inkscape or imagemagick to render the wallpaper (run ./install.sh)"; fi
 }
-js=""
+js="" layout_in=""
 while read -r id screen x y w h; do
   # the primary screen holds the taskbar, so the banner moves up there
   panel=0; [ "$screen" = 0 ] && panel=44
   png="$HM_SHARE/wallpaper-${w}x${h}-p$panel.png"
-  python3 "$REPO/scripts/wallpaper.py" "$REPO/config/shortcuts.conf" "${png%.png}.svg" "${w}x$h" "$FONT" "$panel"
+  # portrait screens hand the middle band to the desktop widgets, so the skull goes
+  skull=""; [ "$DO_WIDGETS" = 1 ] && [ "$h" -gt "$w" ] && skull=--no-skull
+  python3 "$REPO/scripts/wallpaper.py" "$REPO/config/shortcuts.conf" "${png%.png}.svg" "${w}x$h" "$FONT" "$panel" $skull
+  layout_in+="$id $screen $w $h ${png%.png}.json"$'\n'
   render "${png%.png}.svg" "$png"
   js+="d = desktopById($id); d.wallpaperPlugin = 'org.kde.image';
        d.currentConfigGroup = ['Wallpaper', 'org.kde.image', 'General'];
@@ -216,21 +219,22 @@ if [ "$DO_PANEL" = 1 ]; then
   ok "three islands: λ + apps · clock · tray"
 fi
 
-# ── 6a · desktop card: APPS // PINNED ───────────────────────────────────────
+# ── 6a · desktop widgets on every screen ────────────────────────────────────
 if [ "$DO_WIDGETS" = 1 ]; then
-  step "desktop apps card"
-  plasmoid="$XDG_DATA_HOME/plasma/plasmoids/org.hackmachine.apps"
-  rm -rf "$plasmoid"; mkdir -p "$(dirname "$plasmoid")"
-  cp -r "$REPO/theme/plasmoids/org.hackmachine.apps" "$plasmoid"
-  apps_json=$(python3 "$REPO/scripts/apps.py" "$REPO/config/apps.conf" json | sed "s/'/\\'/g")
-  plasma_eval "
-    var d = desktopForScreen(0), g = screenGeometry(0);
-    d.widgets('org.hackmachine.apps').forEach(function (w) { w.remove(); });
-    var w = d.addWidget('org.hackmachine.apps', 48, g.height - 44 - 32 - 280, 336, 280);
-    w.currentConfigGroup = ['General'];
-    w.writeConfig('apps', '$apps_json');
-    w.writeConfig('menuCommand', '$BIN/hm-menu');" >/dev/null
-  ok "bottom-left of the primary screen ($(python3 "$REPO/scripts/apps.py" "$REPO/config/apps.conf" launchers | tr ',' '\n' | wc -l) apps from config/apps.conf)"
+  step "desktop widgets: clock, system, apps on every screen"
+  for pl in apps clock sys; do
+    dst="$XDG_DATA_HOME/plasma/plasmoids/org.hackmachine.$pl"
+    rm -rf "$dst"; mkdir -p "$(dirname "$dst")"
+    cp -r "$REPO/theme/plasmoids/org.hackmachine.$pl" "$dst"
+  done
+  apps_json=$(python3 "$REPO/scripts/apps.py" "$REPO/config/apps.conf" json)
+  # 44px island + its float margin
+  for mode in remove add; do
+    plasma_eval "$(printf '%s' "$layout_in" | python3 "$REPO/scripts/layout.py" "$apps_json" "$BIN/hm-menu" 64 $mode)" >/dev/null
+    [ $mode = remove ] && sleep 2
+  done
+  ok "$(printf '%s' "$layout_in" | grep -c .) screen(s) filled; apps from config/apps.conf"
+fig/apps.conf" launchers | tr ',' '\n' | wc -l) apps from config/apps.conf)"
 fi
 
 # ── 6b · minimal tray ───────────────────────────────────────────────────────
