@@ -1,0 +1,23 @@
+// ~/.config/fastfetch/config.jsonc — Hackmachine
+// Logo colours are terminal palette names, so the Konsole scheme turns them pastel.
+{
+  "logo": {
+    "source": "~/.config/fastfetch/candy-logo.txt",
+    "color": { "1": "magenta", "2": "red", "3": "yellow", "4": "green", "5": "cyan", "6": "blue", "7": "bright_magenta" },
+    "padding": { "top": 1, "right": 3 }
+  },
+  "display": { "separator": "  ", "key": { "width": 9 } },
+  "modules": [
+    "title", "separator",
+    { "type": "os",       "key": "OS",     "keyColor": "magenta" },
+    { "type": "kernel",   "key": "Kernel", "keyColor": "red" },
+    { "type": "de",       "key": "DE",     "keyColor": "yellow" },
+    { "type": "wm",       "key": "WM",     "keyColor": "green" },
+    { "type": "theme",    "key": "Theme",  "keyColor": "cyan" },
+    { "type": "icons",    "key": "Icons",  "keyColor": "blue" },
+    { "type": "terminal", "key": "Term",   "keyColor": "bright_magenta" },
+    { "type": "shell",    "key": "Shell",  "keyColor": "bright_green" },
+    { "type": "uptime",   "key": "Uptime", "keyColor": "bright_blue" },
+    "break", "colors"
+  ]
+}
