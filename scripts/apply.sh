@@ -23,6 +23,7 @@ pgrep -x plasmashell >/dev/null || die "plasmashell is not running; log into a P
 CFG=$XDG_CONFIG_HOME
 BIN="$HOME/.local/bin"
 FONT=$(mono_font)
+ZSHBIN=$(command -v zsh || true)
 SCREENS=$(screens)
 [ -n "$SCREENS" ] || die "could not read the screen layout from plasmashell"
 BACKUP_DIR="$HM_STATE/backup-$(date +%Y%m%d-%H%M%S)"
@@ -63,6 +64,12 @@ else
   printf 'color_theme = "hackmachine"\ntheme_background = True\n' > "$CFG/btop/btop.conf"
 fi
 gtk-update-icon-cache -q "$XDG_DATA_HOME/icons/hicolor" 2>/dev/null || true
+# Hackmachine widgets (the panel clock needs them before the taskbar is built)
+for pl in apps clock sys; do
+  dst="$XDG_DATA_HOME/plasma/plasmoids/org.hackmachine.$pl"
+  rm -rf "$dst"; mkdir -p "$(dirname "$dst")"
+  cp -r "$REPO/theme/plasmoids/org.hackmachine.$pl" "$dst"
+done
 
 cat > "$XDG_DATA_HOME/konsole/Hackmachine.profile" <<EOF
 [Appearance]
@@ -73,6 +80,7 @@ Font=$FONT,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 CursorShape=0
 
 [General]
+${ZSHBIN:+Command=$ZSHBIN}
 Environment=TERM=xterm-256color,COLORTERM=truecolor,HACKMACHINE=1
 Name=Hackmachine
 Parent=FALLBACK/
@@ -111,6 +119,34 @@ if [ "$DO_SHELL" = 1 ]; then
   hook='[ -f "$HOME/.local/share/hackmachine/bashrc" ] && . "$HOME/.local/share/hackmachine/bashrc"  # hackmachine'
   grep -qF '# hackmachine' "$HOME/.bashrc" 2>/dev/null || printf '\n%s\n' "$hook" >> "$HOME/.bashrc"
   ok "bash prompt + fastfetch (only inside the Hackmachine Konsole)"
+fi
+
+# ── zsh: oh-my-zsh + hackmachine theme (Konsole's Hackmachine profile runs zsh) ──
+if [ "$DO_SHELL" = 1 ]; then
+  if [ -n "$ZSHBIN" ]; then
+    omz="$HOME/.oh-my-zsh"
+    if [ ! -d "$omz" ]; then
+      git clone -q --depth 1 https://github.com/ohmyzsh/ohmyzsh.git "$omz" && touch "$HM_STATE/omz-installed-by-hackmachine"
+    fi
+    for repo in zsh-users/zsh-autosuggestions zsh-users/zsh-syntax-highlighting; do
+      dst="$omz/custom/plugins/${repo#*/}"
+      [ -d "$dst" ] || git clone -q --depth 1 "https://github.com/$repo.git" "$dst"
+    done
+    install -Dm644 "$REPO/theme/shell/hackmachine.zsh-theme" "$omz/custom/themes/hackmachine.zsh-theme"
+    install -Dm644 "$REPO/theme/shell/zshrc" "$HM_SHARE/zshrc"
+    backup "$HOME/.zshrc"
+    touch "$HOME/.zshrc"
+    if grep -v '# hackmachine$' "$HOME/.zshrc" | grep -q 'oh-my-zsh.sh'; then
+      # you already load oh-my-zsh yourself: just switch its theme
+      sed -i -E 's/^ZSH_THEME=.*/ZSH_THEME="hackmachine"/' "$HOME/.zshrc"
+    elif ! grep -qF '# hackmachine' "$HOME/.zshrc"; then
+      printf '%s\n\n%s' '[ -f "$HOME/.local/share/hackmachine/zshrc" ] && . "$HOME/.local/share/hackmachine/zshrc"  # hackmachine' \
+        "$(cat "$HOME/.zshrc")" > "$HOME/.zshrc.hm" && mv "$HOME/.zshrc.hm" "$HOME/.zshrc"
+    fi
+    ok "oh-my-zsh + hackmachine theme; Konsole's Hackmachine profile starts zsh"
+  else
+    warn "zsh is not installed yet: run ./install.sh (with packages) for the oh-my-zsh setup"
+  fi
 fi
 
 # ── 2 · colours, plasma style, icons ─────────────────────────────────────────
@@ -238,17 +274,12 @@ if [ "$DO_PANEL" = 1 ]; then
   launchers=$(python3 "$REPO/scripts/apps.py" "$REPO/config/apps.conf" launchers)
   plasma_eval "$(sed "s|__LAUNCHERS__|$launchers|" "$REPO/scripts/panel.js")" >/dev/null
   rm -f "$HM_STATE/tray-seen"   # new tray: hide everything again
-  ok "three islands: λ + apps · clock · tray"
+  ok "three islands: launcher + apps · colourful clock · tray"
 fi
 
 # ── 6a · desktop widgets on every screen ────────────────────────────────────
 if [ "$DO_WIDGETS" = 1 ]; then
   step "desktop widgets: clock, system, apps on every screen"
-  for pl in apps clock sys; do
-    dst="$XDG_DATA_HOME/plasma/plasmoids/org.hackmachine.$pl"
-    rm -rf "$dst"; mkdir -p "$(dirname "$dst")"
-    cp -r "$REPO/theme/plasmoids/org.hackmachine.$pl" "$dst"
-  done
   apps_json=$(python3 "$REPO/scripts/apps.py" "$REPO/config/apps.conf" json)
   # 44px island + its float margin
   for mode in remove add; do

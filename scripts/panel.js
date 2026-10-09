@@ -36,16 +36,9 @@ tasks.writeConfig("indicateAudioStreams", true);
 tasks.writeConfig("iconSpacing", 1);
 tasks.writeConfig("fill", false);
 
-// ── centre: clock ──
+// ── centre: clock (the Hackmachine clock in its compact, colourful panel form) ──
 var centre = island("center");
-var clock = centre.addWidget("org.kde.plasma.digitalclock");
-clock.currentConfigGroup = ["Appearance"];
-clock.writeConfig("showSeconds", 2);
-clock.writeConfig("dateFormat", "custom");
-clock.writeConfig("customDateFormat", "ddd dd.MM.yy");
-clock.writeConfig("dateDisplayFormat", 1); // date beside the time: one wide line
-clock.writeConfig("autoFontAndSize", true);
-clock.writeConfig("use24hFormat", 2);
+centre.addWidget("org.hackmachine.clock");
 
 // ── right: tray ──
 var right = island("right");

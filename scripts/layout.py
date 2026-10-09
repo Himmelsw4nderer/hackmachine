@@ -5,7 +5,7 @@ Reads one line per screen on stdin:  <containment id> <screen> <width> <height> 
 and prints a Plasma script that (re)places the clock, system and apps cards on each desktop.
 
 Landscape: the wallpaper owns the right-hand column (cheat-sheet) and the banner bottom-right,
-           so the widgets fill the left: clock on top, apps + system side by side at the bottom.
+           so the widgets fill the left: clock top-left, apps + system side by side at the bottom.
 Portrait:  the wallpaper owns the top (cheat-sheet) and the bottom (banner), so the widgets
            stack in the band between them: clock, apps, system.
 
@@ -33,7 +33,7 @@ def landscape(w, h, box, s, bottom_reserve):
     apps_w = min(560 * s, row_w * 0.44)
     clock_w = min(760 * s, right - left)
     return [
-        ("org.hackmachine.clock", left + (right - left - clock_w) / 2, m, clock_w, 300 * s),
+        ("org.hackmachine.clock", left, m, clock_w, 300 * s),
         ("org.hackmachine.apps", left, bottom - row_h, apps_w, row_h),
         ("org.hackmachine.sys", left + apps_w + gap, bottom - row_h, row_w - apps_w - gap, row_h),
     ]

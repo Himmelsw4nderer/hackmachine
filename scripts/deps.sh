@@ -10,11 +10,11 @@ case "$fam" in
   fedora)
     sudo dnf install -y --skip-unavailable \
       jetbrains-mono-fonts-all fastfetch fzf figlet lolcat toilet cava btop \
-      librsvg2-tools curl konsole kde-cli-tools
+      librsvg2-tools curl konsole kde-cli-tools zsh git
     ;;
   debian)
     sudo apt-get update
-    pkgs=(fonts-jetbrains-mono fzf figlet lolcat toilet cava btop librsvg2-bin curl konsole kde-cli-tools)
+    pkgs=(fonts-jetbrains-mono fzf figlet lolcat toilet cava btop librsvg2-bin curl konsole kde-cli-tools zsh git)
     # fastfetch is in Ubuntu 24.10+ / Debian 13+; older releases need ppa:zhangsongcui3371/fastfetch.
     if apt-cache show fastfetch >/dev/null 2>&1; then pkgs+=(fastfetch)
     else warn "fastfetch not in apt; add ppa:zhangsongcui3371/fastfetch to get it"; fi
@@ -22,10 +22,10 @@ case "$fam" in
     ;;
   arch)
     sudo pacman -S --needed --noconfirm \
-      ttf-jetbrains-mono fastfetch fzf figlet lolcat toilet cava btop librsvg curl konsole
+      ttf-jetbrains-mono fastfetch fzf figlet lolcat toilet cava btop librsvg curl konsole zsh git
     ;;
   suse)
-    sudo zypper install -y jetbrains-mono-fonts fastfetch fzf figlet lolcat toilet cava btop rsvg-convert curl konsole
+    sudo zypper install -y jetbrains-mono-fonts fastfetch fzf figlet lolcat toilet cava btop rsvg-convert curl konsole zsh git
     ;;
   *)
     warn "unknown distro; install by hand: JetBrains Mono, fastfetch, fzf, figlet, lolcat, cava, btop, rsvg-convert"
