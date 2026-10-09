@@ -25,7 +25,8 @@ rm -f "$HOME/.local/bin/hm-menu" "$HOME/.local/bin/hm-keys" "$HOME/.local/bin/hm
       "$XDG_DATA_HOME/konsole/Hackmachine.profile" "$XDG_DATA_HOME/konsole/Hackmachine.colorscheme" \
       "$XDG_DATA_HOME/icons/hicolor/scalable/apps/hackmachine.svg" \
       "$XDG_CONFIG_HOME/fastfetch/candy-logo.txt" \
-      "$XDG_STATE_HOME/hackmachine/menu-config/konsolerc" "$XDG_CONFIG_HOME/btop/themes/hackmachine.theme"
+      "$XDG_STATE_HOME/hackmachine/menu-config/konsolerc" \
+      "$XDG_DATA_HOME/kxmlgui5/konsole/konsoleui.rc" "$XDG_DATA_HOME/kxmlgui5/konsole/sessionui.rc" "$XDG_CONFIG_HOME/btop/themes/hackmachine.theme"
 
 # shellcheck disable=SC1091
 source "$src/previous.env"

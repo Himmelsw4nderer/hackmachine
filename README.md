@@ -32,7 +32,7 @@ Options (passed through to `scripts/apply.sh`): `--no-panel` keeps your panels, 
 | **Tray** | Only network, sound, microphone and battery stay visible. Everything else, Plasma's own entries and app icons alike, goes into the `^` popup. `hm-tray` runs at login and hides tray icons from apps that start later. Each entry is hidden only the first time it appears, so anything you set to "Always shown" stays. Edit `SHOW` in `bin/hm-tray` to change the list. |
 | **Wallpaper** | Rendered **per screen at its real size**, so rotated or portrait monitors get a stacked layout. It has a dot grid, a faint ASCII skull (landscape only), a **key cheat-sheet**, a `whoami` card and the rainbow `HACKMACHINE` banner. The lock screen gets it too. |
 | **Hack menu** | `Meta+Space` opens a borderless, centred fzf launcher. It shows a rainbow figlet banner, all apps, and lock, log out, reboot and shutdown. |
-| **Terminal** | Konsole profile `Hackmachine`: pastel 16-colour palette, 92% opacity with blur, a `λ ~/path >` prompt and fastfetch with the candy logo. The prompt only applies inside this profile. |
+| **Terminal** | Konsole profile `Hackmachine`: pastel 16-colour palette, 92% opacity with blur, a `λ ~/path >` prompt and fastfetch with the candy logo. The prompt only applies inside this profile. **No toolbars**: only the window decoration and the terminal. `apply.sh` fetches Konsole's own layout files for the installed version and strips their toolbars. Menus are still there via Ctrl+Shift+M or right-click. |
 | **Extras** | Themes for btop and cava (rainbow bars). |
 
 ## Pinned apps

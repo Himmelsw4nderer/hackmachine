@@ -83,6 +83,28 @@ TerminalMargin=12
 ScrollBarPosition=2
 EOF
 kwrite --file konsolerc --group "Desktop Entry" --key DefaultProfile Hackmachine.profile
+# No toolbars in Konsole: just the window decoration and the terminal. The layout files are compiled
+# into Konsole, so fetch the ones for the installed version from KDE and drop their <ToolBar>s.
+# (Menus stay reachable: Ctrl+Shift+M or right-click.)
+kver=$(konsole --version 2>/dev/null | awk '{print $2}')
+if [ -n "$kver" ]; then
+  kui="$XDG_DATA_HOME/kxmlgui5/konsole"; mkdir -p "$kui"
+  for rc in konsoleui.rc sessionui.rc; do
+    if curl -fsSL "https://invent.kde.org/utilities/konsole/-/raw/v$kver/desktop/$rc" -o "$kui/$rc.tmp"; then
+      python3 - "$kui/$rc.tmp" <<'NOTOOLBAR'
+import re, sys
+p = sys.argv[1]
+s = open(p).read()
+s = re.sub(r"\s*<ToolBar\b.*?</ToolBar>", "", s, flags=re.S)
+open(p, "w").write(s)
+NOTOOLBAR
+      mv "$kui/$rc.tmp" "$kui/$rc"
+    else
+      rm -f "$kui/$rc.tmp"; warn "could not fetch Konsole $kver's $rc; its toolbar stays"
+    fi
+  done
+fi
+kwrite --file konsolerc --group KonsoleWindow --key ShowMenuBarByDefault false
 ok "konsole profile, fastfetch, btop, cava, hm-menu, hm-keys"
 
 if [ "$DO_SHELL" = 1 ]; then
@@ -234,7 +256,6 @@ if [ "$DO_WIDGETS" = 1 ]; then
     [ $mode = remove ] && sleep 2
   done
   ok "$(printf '%s' "$layout_in" | grep -c .) screen(s) filled; apps from config/apps.conf"
-fig/apps.conf" launchers | tr ',' '\n' | wc -l) apps from config/apps.conf)"
 fi
 
 # ── 6b · minimal tray ───────────────────────────────────────────────────────
@@ -249,9 +270,7 @@ Exec=$BIN/hm-tray
 NoDisplay=true
 X-KDE-autostart-phase=2
 DESKTOP
-pkill -f "$BIN/hm-tr[a]y" 2>/dev/null || true
-(setsid -f "$BIN/hm-tray" >/dev/null 2>&1 &)
-ok "hm-tray runs at login and hides new tray icons as apps start"
+ok "hm-tray runs at login and hides new tray icons as apps start (started below)"
 
 # ── 7 · shortcuts ───────────────────────────────────────────────────────────
 if [ "$DO_KEYS" = 1 ]; then
@@ -267,6 +286,10 @@ else
   kquitapp6 plasmashell >/dev/null 2>&1 || true; sleep 1; (setsid -f plasmashell >/dev/null 2>&1 &)
 fi
 ok "done"
+
+# The tray watcher starts only now, once the restarted plasmashell is there to talk to.
+pkill -f "$BIN/hm-tr[a]y" 2>/dev/null || true
+(setsid -f "$BIN/hm-tray" >/dev/null 2>&1 &)
 
 printf '\n%sλ hackmachine applied.%s  %sMeta+/ shows every key · Meta+Space opens the hack menu%s\n' \
   "$c_lav" "$c_off" "$c_muted" "$c_off"
