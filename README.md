@@ -9,7 +9,7 @@ Wayland and two monitors (one rotated 90°). The scripts also handle Ubuntu/Kubu
 and openSUSE.
 
 ```bash
-git clone <this repo> ~/proj/kde-rice && cd ~/proj/kde-rice
+git clone https://github.com/Himmelsw4nderer/hackmachine.git && cd hackmachine
 ./install.sh                  # packages (sudo) + theme
 ./install.sh --no-deps        # theme only, no sudo
 ./scripts/uninstall.sh        # back to how things were before the first install
