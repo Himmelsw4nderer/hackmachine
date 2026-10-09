@@ -1,6 +1,6 @@
 # Hackmachine oh-my-zsh theme: cocoa terminal, pastel prompt.
 #
-#   ╭─λ nbax@nobara-pc ─ ~/proj/kde-rice ─  main ✓
+#   ╭─λ user@host ─ ~/proj/kde-rice ─  main ✓
 #   ╰─❯                                   (base) 3s ✗ 1 16:34
 #
 # mint λ + prompt (coral after a failed command), lilac user, lavender host, sky path,
