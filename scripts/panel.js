@@ -12,11 +12,11 @@ panel.floating = false;
 panel.lengthMode = "fill";
 panel.hiding = "none";
 
-// λ hackmachine start button
+// λ start button: icon only
 var kickoff = panel.addWidget("org.kde.plasma.kickoff");
 kickoff.currentConfigGroup = ["General"];
 kickoff.writeConfig("icon", "hackmachine");
-kickoff.writeConfig("menuLabel", "hackmachine");
+kickoff.writeConfig("menuLabel", "");
 kickoff.writeConfig("favoritesDisplay", 1); // list, not grid
 kickoff.writeConfig("applicationsDisplay", 1);
 kickoff.writeConfig("compactMode", true);

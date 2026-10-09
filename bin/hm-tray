@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Keep the system tray minimal: only the entries in SHOW stay visible, everything else
+# (Plasma tray widgets and every app's tray icon) goes into the ^ overflow popup.
+# Apps register tray icons whenever they start, so this keeps watching and hides new ones too.
+#
+# usage: hm-tray          sweep once, then watch (what the autostart entry runs)
+#        hm-tray --once   sweep once and exit
+set -uo pipefail
+
+# Always visible. Battery hides itself on machines without one.
+SHOW=(org.kde.plasma.networkmanagement org.kde.plasma.volume plasmashell_microphone org.kde.plasma.battery)
+
+eval_js() {
+  if command -v qdbus6 >/dev/null; then qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$1"
+  else qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$1"; fi
+}
+
+# Ids of the app tray icons that are registered right now.
+sni_ids() {
+  local items item svc path id
+  items=$(gdbus call --session --dest org.kde.StatusNotifierWatcher --object-path /StatusNotifierWatcher \
+    --method org.freedesktop.DBus.Properties.Get org.kde.StatusNotifierWatcher RegisteredStatusNotifierItems 2>/dev/null \
+    | grep -o "'[^']*'" | tr -d "'")
+  for item in $items; do
+    svc=${item%%/*}; path=/${item#*/}
+    for iface in org.kde.StatusNotifierItem org.freedesktop.StatusNotifierItem; do
+      id=$(gdbus call --session --dest "$svc" --object-path "$path" --method org.freedesktop.DBus.Properties.Get \
+        "$iface" Id 2>/dev/null | sed -n "s/.*'\(.*\)'.*/\1/p")
+      [ -n "$id" ] && { echo "$id"; break; }
+    done
+  done
+}
+
+SEEN="${XDG_STATE_HOME:-$HOME/.local/state}/hackmachine/tray-seen"
+
+# Each tray entry is hidden the first time it shows up and then left alone, so anything you
+# later set to "Always shown" in the tray settings stays shown.
+sweep() {
+  local ids seen show out
+  mkdir -p "$(dirname "$SEEN")"; touch "$SEEN"
+  q() { sed 's/\\/\\\\/g; s/"/\\"/g; s/.*/"&"/' | paste -sd, -; }
+  ids=$(sni_ids | sort -u | q)
+  seen=$(q < "$SEEN")
+  show=$(printf '%s\n' "${SHOW[@]}" | q)
+  out=$(eval_js '
+var show = ['"$show"'], apps = ['"$ids"'], seen = ['"$seen"'];
+var list = function (t, k) { return String(t.readConfig(k) || "").split(",").filter(function (x) { return x; }); };
+panels().forEach(function (p) {
+  p.widgets("org.kde.plasma.systemtray").forEach(function (t) {
+    t.currentConfigGroup = ["General"];
+    var hidden = list(t, "hiddenItems"), shown = list(t, "shownItems"), changed = false;
+    list(t, "knownItems").concat(apps).forEach(function (id) {
+      if (seen.indexOf(id) >= 0) return;
+      seen.push(id);
+      if (show.indexOf(id) < 0 && hidden.indexOf(id) < 0) { hidden.push(id); changed = true; }
+    });
+    show.forEach(function (id) { if (shown.indexOf(id) < 0) { shown.push(id); changed = true; } });
+    if (changed) { t.writeConfig("hiddenItems", hidden); t.writeConfig("shownItems", shown); }
+  });
+});
+print(seen.join("\n"));' 2>/dev/null) || return 0
+  [ -n "$out" ] && printf '%s\n' "$out" > "$SEEN"
+}
+
+# plasmashell may still be starting when the session autostarts us
+for _ in $(seq 30); do
+  gdbus introspect --session --dest org.kde.plasmashell --object-path /PlasmaShell >/dev/null 2>&1 && break
+  sleep 1
+done
+sweep
+[ "${1:-}" = --once ] && exit 0
+
+gdbus monitor --session --dest org.kde.StatusNotifierWatcher 2>/dev/null |
+  while read -r line; do
+    case "$line" in *StatusNotifierItemRegistered*) sleep 1; sweep ;; esac
+  done

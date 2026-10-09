@@ -49,6 +49,7 @@ install -Dm644 "$REPO/theme/konsole/Hackmachine.colorscheme" "$XDG_DATA_HOME/kon
 install -Dm644 "$REPO/theme/icons/hackmachine.svg" "$XDG_DATA_HOME/icons/hicolor/scalable/apps/hackmachine.svg"
 install -Dm755 "$REPO/bin/hm-menu" "$BIN/hm-menu"
 install -Dm755 "$REPO/bin/hm-keys" "$BIN/hm-keys"
+install -Dm755 "$REPO/bin/hm-tray" "$BIN/hm-tray"
 install -Dm644 "$REPO/scripts/shortcuts.py" "$HM_SHARE/shortcuts.py"
 install -Dm644 "$REPO/config/shortcuts.conf" "$HM_SHARE/shortcuts.conf"
 install -Dm644 "$REPO/theme/shell/bashrc" "$HM_SHARE/bashrc"
@@ -210,8 +211,25 @@ ok "lock screen uses the primary screen's wallpaper"
 if [ "$DO_PANEL" = 1 ]; then
   step "taskbar"
   plasma_eval "$(cat "$REPO/scripts/panel.js")" >/dev/null
-  ok "bottom, 44px: λ hackmachine · pinned apps · cpu · tray · clock"
+  rm -f "$HM_STATE/tray-seen"   # new tray: hide everything again
+  ok "bottom, 44px: λ · pinned apps · tray · clock"
 fi
+
+# ── 6b · minimal tray ───────────────────────────────────────────────────────
+step "tray: network, sound, microphone, battery; the rest in the ^ popup"
+mkdir -p "$CFG/autostart"
+cat > "$CFG/autostart/hackmachine-tray.desktop" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=Hackmachine tray
+Comment=Keeps the system tray down to network, sound, microphone and battery
+Exec=$BIN/hm-tray
+NoDisplay=true
+X-KDE-autostart-phase=2
+DESKTOP
+pkill -f "$BIN/hm-tr[a]y" 2>/dev/null || true
+(setsid -f "$BIN/hm-tray" >/dev/null 2>&1 &)
+ok "hm-tray runs at login and hides new tray icons as apps start"
 
 # ── 7 · shortcuts ───────────────────────────────────────────────────────────
 if [ "$DO_KEYS" = 1 ]; then

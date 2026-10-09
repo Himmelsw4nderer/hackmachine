@@ -19,7 +19,9 @@ for f in kdeglobals kwinrc kwinrulesrc plasmarc konsolerc kscreenlockerrc plasma
 done
 [ -e "$src/.bashrc" ] && cp -a "$src/.bashrc" "$HOME/.bashrc" || sed -i '/# hackmachine$/d' "$HOME/.bashrc"
 
-rm -f "$HOME/.local/bin/hm-menu" "$HOME/.local/bin/hm-keys" \
+pkill -f "hm-tr[a]y" 2>/dev/null || true
+rm -f "$HOME/.local/bin/hm-menu" "$HOME/.local/bin/hm-keys" "$HOME/.local/bin/hm-tray" \
+      "$XDG_CONFIG_HOME/autostart/hackmachine-tray.desktop" "$HM_STATE/tray-seen" \
       "$XDG_DATA_HOME/konsole/Hackmachine.profile" "$XDG_DATA_HOME/konsole/Hackmachine.colorscheme" \
       "$XDG_DATA_HOME/icons/hicolor/scalable/apps/hackmachine.svg" \
       "$XDG_CONFIG_HOME/fastfetch/candy-logo.txt" \
