@@ -3,15 +3,15 @@
 # Everything it overwrites is copied to ~/.local/state/hackmachine/backup-<time>/ first;
 # uninstall.sh puts the oldest backup (your pre-Hackmachine setup) back.
 #
-# usage: apply.sh [--no-panel] [--no-shell] [--no-shortcuts] [--no-icons]
+# usage: apply.sh [--no-panel] [--no-shell] [--no-shortcuts] [--no-icons] [--no-widgets]
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
-DO_PANEL=1 DO_SHELL=1 DO_KEYS=1 DO_ICONS=1
+DO_PANEL=1 DO_SHELL=1 DO_KEYS=1 DO_ICONS=1 DO_WIDGETS=1
 for a in "$@"; do
   case "$a" in
     --no-panel) DO_PANEL=0 ;; --no-shell) DO_SHELL=0 ;;
-    --no-shortcuts) DO_KEYS=0 ;; --no-icons) DO_ICONS=0 ;;
+    --no-shortcuts) DO_KEYS=0 ;; --no-icons) DO_ICONS=0 ;; --no-widgets) DO_WIDGETS=0 ;;
     -h|--help) sed -n '2,6p' "$0"; exit 0 ;;
     *) die "unknown option $a" ;;
   esac
@@ -210,9 +210,27 @@ ok "lock screen uses the primary screen's wallpaper"
 # ── 6 · taskbar ─────────────────────────────────────────────────────────────
 if [ "$DO_PANEL" = 1 ]; then
   step "taskbar"
-  plasma_eval "$(cat "$REPO/scripts/panel.js")" >/dev/null
+  launchers=$(python3 "$REPO/scripts/apps.py" "$REPO/config/apps.conf" launchers)
+  plasma_eval "$(sed "s|__LAUNCHERS__|$launchers|" "$REPO/scripts/panel.js")" >/dev/null
   rm -f "$HM_STATE/tray-seen"   # new tray: hide everything again
-  ok "bottom, 44px: λ · pinned apps · tray · clock"
+  ok "three islands: λ + apps · clock · tray"
+fi
+
+# ── 6a · desktop card: APPS // PINNED ───────────────────────────────────────
+if [ "$DO_WIDGETS" = 1 ]; then
+  step "desktop apps card"
+  plasmoid="$XDG_DATA_HOME/plasma/plasmoids/org.hackmachine.apps"
+  rm -rf "$plasmoid"; mkdir -p "$(dirname "$plasmoid")"
+  cp -r "$REPO/theme/plasmoids/org.hackmachine.apps" "$plasmoid"
+  apps_json=$(python3 "$REPO/scripts/apps.py" "$REPO/config/apps.conf" json | sed "s/'/\\'/g")
+  plasma_eval "
+    var d = desktopForScreen(0), g = screenGeometry(0);
+    d.widgets('org.hackmachine.apps').forEach(function (w) { w.remove(); });
+    var w = d.addWidget('org.hackmachine.apps', 48, g.height - 44 - 32 - 280, 336, 280);
+    w.currentConfigGroup = ['General'];
+    w.writeConfig('apps', '$apps_json');
+    w.writeConfig('menuCommand', '$BIN/hm-menu');" >/dev/null
+  ok "bottom-left of the primary screen ($(python3 "$REPO/scripts/apps.py" "$REPO/config/apps.conf" launchers | tr ',' '\n' | wc -l) apps from config/apps.conf)"
 fi
 
 # ── 6b · minimal tray ───────────────────────────────────────────────────────

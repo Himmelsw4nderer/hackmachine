@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [{ "Name": "Hackmachine" }],
+        "Category": "Application Launchers",
+        "Description": "Pinned app tiles in the Hackmachine style",
+        "Icon": "hackmachine",
+        "Id": "org.hackmachine.apps",
+        "License": "GPL-3.0-or-later",
+        "Name": "Hackmachine apps",
+        "Version": "1.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

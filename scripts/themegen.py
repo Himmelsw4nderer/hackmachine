@@ -133,10 +133,11 @@ def plasma(dest):
     (dest / "widgets").mkdir(parents=True, exist_ok=True)
     (dest / "dialogs").mkdir(parents=True, exist_ok=True)
 
-    # Taskbar: flat cocoa, one hairline on top (radius-0, the design's hard edge).
+    # Taskbar islands: rounded cocoa pills with a hairline (FrameSvg drops the edge that touches
+    # the screen when a maximised window un-floats the panel).
     d = Doc()
-    frame(d, "", 2, BG100, 0.97, border=(LINE, 1, 1), sides="top", margins=(3, 3, 3, 3))
-    frame(d, "mask", 2, "#000000")
+    frame(d, "", 8, BG100, 0.97, border=(LINE, 1, 1), radius=8, margins=(4, 6, 4, 6))
+    frame(d, "mask", 8, "#000000", radius=8)
     (dest / "widgets/panel-background.svg").write_text(d.svg())
 
     # Task buttons: hover = bg-300 tile, running = short faint bar, focused = tile + lavender bar,

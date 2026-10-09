@@ -1,19 +1,27 @@
-// Hackmachine taskbar: bottom, full width, 44px, not floating, Windows-style order.
-// Run through org.kde.PlasmaShell.evaluateScript.
+// Hackmachine taskbar: three floating islands along the bottom of the primary screen.
+//   left   λ launcher + pinned/running apps
+//   centre clock
+//   right  tray + show desktop
+// Run through org.kde.PlasmaShell.evaluateScript; apply.sh fills in __LAUNCHERS__.
 // Replaces every existing panel (apply.sh backs up the old layout first).
 
 panels().forEach(function (p) { p.remove(); });
 
-var panel = new Panel();
-panel.screen = 0; // new panels open on the screen under the mouse; 0 is the primary one
-panel.location = "bottom";
-panel.height = 44;
-panel.floating = false;
-panel.lengthMode = "fill";
-panel.hiding = "none";
+function island(alignment) {
+    var p = new Panel();
+    p.screen = 0;          // new panels open on the screen under the mouse; 0 is the primary one
+    p.location = "bottom";
+    p.height = 44;
+    p.floating = true;
+    p.lengthMode = "fit";  // only as wide as its content, so the islands sit apart
+    p.alignment = alignment;
+    p.hiding = "none";
+    return p;
+}
 
-// λ start button: icon only
-var kickoff = panel.addWidget("org.kde.plasma.kickoff");
+// ── left: start + apps ──
+var left = island("left");
+var kickoff = left.addWidget("org.kde.plasma.kickoff");
 kickoff.currentConfigGroup = ["General"];
 kickoff.writeConfig("icon", "hackmachine");
 kickoff.writeConfig("menuLabel", "");
@@ -21,29 +29,25 @@ kickoff.writeConfig("favoritesDisplay", 1); // list, not grid
 kickoff.writeConfig("applicationsDisplay", 1);
 kickoff.writeConfig("compactMode", true);
 
-// pinned apps: terminal, files, browser, settings
-var tasks = panel.addWidget("org.kde.plasma.icontasks");
+var tasks = left.addWidget("org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
-tasks.writeConfig("launchers", [
-  "applications:org.kde.konsole.desktop",
-  "applications:org.kde.dolphin.desktop",
-  "preferred://browser",
-  "applications:systemsettings.desktop"
-].join(","));
+tasks.writeConfig("launchers", "__LAUNCHERS__");
 tasks.writeConfig("indicateAudioStreams", true);
 tasks.writeConfig("iconSpacing", 1);
+tasks.writeConfig("fill", false);
 
-panel.addWidget("org.kde.plasma.panelspacer");
-
-panel.addWidget("org.kde.plasma.systemtray");
-
-var clock = panel.addWidget("org.kde.plasma.digitalclock");
+// ── centre: clock ──
+var centre = island("center");
+var clock = centre.addWidget("org.kde.plasma.digitalclock");
 clock.currentConfigGroup = ["Appearance"];
 clock.writeConfig("showSeconds", 2);
 clock.writeConfig("dateFormat", "custom");
-clock.writeConfig("customDateFormat", "dd.MM.yy");
-clock.writeConfig("dateDisplayFormat", 2); // date below time
-clock.writeConfig("autoFontAndSize", true); // sized to the panel, in the (monospace) UI font
+clock.writeConfig("customDateFormat", "ddd dd.MM.yy");
+clock.writeConfig("dateDisplayFormat", 1); // date beside the time: one wide line
+clock.writeConfig("autoFontAndSize", true);
 clock.writeConfig("use24hFormat", 2);
 
-panel.addWidget("org.kde.plasma.showdesktop");
+// ── right: tray ──
+var right = island("right");
+right.addWidget("org.kde.plasma.systemtray");
+right.addWidget("org.kde.plasma.showdesktop");

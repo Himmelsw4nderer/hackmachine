@@ -15,7 +15,7 @@ git clone <this repo> ~/proj/kde-rice && cd ~/proj/kde-rice
 ./scripts/uninstall.sh        # back to how things were before the first install
 ```
 
-Options (passed through to `scripts/apply.sh`): `--no-panel` keeps your panels, `--no-shell` leaves
+Options (passed through to `scripts/apply.sh`): `--no-panel` keeps your panels, `--no-widgets` skips the desktop card, `--no-shell` leaves
 `~/.bashrc` alone, `--no-shortcuts` skips the key bindings, `--no-icons` keeps your icon theme.
 
 ## What you get
@@ -27,12 +27,19 @@ Options (passed through to `scripts/apply.sh`): `--no-panel` keeps your panels, 
 | **Icons** | `Hackmachine`: the BeautyLine line-icon theme (fetched at a pinned commit, GPL-3) repainted so each icon is **one pastel chosen by category**. Media is pink, security coral, time and transfers peach, files butter, dev mint, chat teal, web sky, system lavender and session lilac. App icons are categorised from their `.desktop` Categories, others by name. Underneath it, `Hackmachine-Breeze` repaints Breeze's small symbolic icons (tray, toolbars) the same way. |
 | **Fonts** | JetBrains Mono for every UI font, with bold window titles. The Nerd Font build is used if that's the one installed. VT323 is fetched for pixel headings. |
 | **Windows** | `Hackmachine` Aurorae decoration (generated SVG). Cocoa title bar with the title on the left and bracketed `[_] [□] [x]` buttons on the right; close turns coral on hover. The active window gets a 1px lavender ring and inactive ones a hairline. Blur is on. |
-| **Taskbar** | Bottom of the primary screen, 44px, full width, not floating. Left to right: the λ launcher (icon only), pinned terminal/files/browser/settings, the tray, a two-line clock (seconds, `dd.MM.yy`) and show-desktop. |
+| **Taskbar** | Three floating islands at the bottom of the primary screen: the λ launcher and pinned apps on the left, the clock in the centre, the tray and show-desktop on the right. Each island is a rounded cocoa pill with a hairline border. |
+| **Desktop card** | `APPS // PINNED`, a small custom Plasma widget (`theme/plasmoids/org.hackmachine.apps`) in the bottom-left corner. App tiles are numbered `[01]`… with icon and name in the app's category colour; hovering raises the tile with a coloured bar like the taskbar. Its footer opens the hack menu. |
 | **Tray** | Only network, sound, microphone and battery stay visible. Everything else, Plasma's own entries and app icons alike, goes into the `^` popup. `hm-tray` runs at login and hides tray icons from apps that start later. Each entry is hidden only the first time it appears, so anything you set to "Always shown" stays. Edit `SHOW` in `bin/hm-tray` to change the list. |
 | **Wallpaper** | Rendered **per screen at its real size**, so rotated or portrait monitors get a stacked layout. It has a dot grid, a faint ASCII skull, a **key cheat-sheet**, a `whoami` card and the rainbow `HACKMACHINE` banner. The lock screen gets it too. |
 | **Hack menu** | `Meta+Space` opens a borderless, centred fzf launcher. It shows a rainbow figlet banner, all apps, and lock, log out, reboot and shutdown. |
 | **Terminal** | Konsole profile `Hackmachine`: pastel 16-colour palette, 92% opacity with blur, a `λ ~/path >` prompt and fastfetch with the candy logo. The prompt only applies inside this profile. |
 | **Extras** | Themes for btop and cava (rainbow bars). |
+
+## Pinned apps
+
+`config/apps.conf` lists the pinned apps, used by both the taskbar and the desktop card. Each line
+has a label, a category colour and the `.desktop` ids to try, so one line covers the native,
+Flatpak and Snap builds of an app. Edit it and run `./install.sh --no-deps`.
 
 ## Shortcuts
 
@@ -67,10 +74,12 @@ scripts/apply.sh        everything per-user; backs up first to ~/.local/state/ha
 scripts/uninstall.sh    restores the oldest backup, removes our files
 scripts/wallpaper.py    SVG wallpaper generator (stdlib only), rendered with rsvg-convert/inkscape/magick
 scripts/shortcuts.py    binds/unbinds global shortcuts, prints the cheat-sheet
-scripts/panel.js        Plasma scripting for the taskbar
+scripts/panel.js        Plasma scripting for the taskbar islands
+scripts/apps.py         resolves config/apps.conf to installed .desktop files
 scripts/icons.py        repaints an icon theme, one pastel per icon by category
 scripts/themegen.py     generates the Plasma style and the Aurorae decoration
 config/shortcuts.conf   key bindings + cheat-sheet rows
+config/apps.conf        pinned apps (taskbar + desktop card)
 bin/hm-menu, hm-keys    the launcher and the cheat-sheet viewer (installed to ~/.local/bin)
 bin/hm-tray             keeps the tray minimal (autostarted)
 theme/                  colour schemes, Konsole, fastfetch, btop, cava, icon, shell, KWin script
