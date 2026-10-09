@@ -30,7 +30,7 @@ mkdir -p "$BACKUP_DIR" "$HM_SHARE" "$BIN"
 
 # ── 0 · backup ──────────────────────────────────────────────────────────────
 step "backing up current settings → ${BACKUP_DIR/#$HOME/\~}"
-backup "$CFG/kdeglobals" "$CFG/kwinrc" "$CFG/kwinrulesrc" "$CFG/breezerc" "$CFG/plasmarc" \
+backup "$CFG/kdeglobals" "$CFG/kwinrc" "$CFG/kwinrulesrc" "$CFG/plasmarc" \
        "$CFG/konsolerc" "$CFG/kscreenlockerrc" "$CFG/plasma-org.kde.plasma.desktop-appletsrc" \
        "$CFG/plasmashellrc" "$CFG/kglobalshortcutsrc" "$CFG/fastfetch/config.jsonc" \
        "$CFG/cava/config" "$CFG/btop/btop.conf" "$HOME/.bashrc"
@@ -91,17 +91,44 @@ if [ "$DO_SHELL" = 1 ]; then
 fi
 
 # ── 2 · colours, plasma style, icons ─────────────────────────────────────────
-step "colours"
+step "colours + plasma style"
 plasma-apply-colorscheme Hackmachine >/dev/null 2>&1 || plasma-apply-colorscheme Hackmachine
-plasma-apply-desktoptheme default >/dev/null 2>&1 || true   # Breeze, which follows the colour scheme
 kwrite --file kdeglobals --group KDE --key widgetStyle Breeze
+pstyle="$XDG_DATA_HOME/plasma/desktoptheme/hackmachine"
+rm -rf "$pstyle"
+python3 "$REPO/scripts/themegen.py" plasma "$pstyle"
+# Plasma caches theme SVGs; drop the cache so a regenerated style shows up at once.
+rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/plasma-svgelements* "${XDG_CACHE_HOME:-$HOME/.cache}"/plasma_theme_hackmachine*
+plasma-apply-desktoptheme hackmachine >/dev/null 2>&1 || plasma-apply-desktoptheme hackmachine
+ok "Hackmachine colours + Plasma style (cocoa panel, lavender focus bars, rounded popups)"
+
 if [ "$DO_ICONS" = 1 ]; then
+  step "icons: BeautyLine + Breeze symbolic, one pastel per category"
+  # BeautyLine (GPL-3) is fetched at a fixed commit and repainted locally; it is not vendored here.
+  BL_REV=07e3736f8be38f9f48cf015d992f56f06e455002
+  bl_src="$HM_STATE/src/beautyline-$BL_REV"
+  if [ ! -f "$bl_src/index.theme" ]; then
+    mkdir -p "$HM_STATE/src"
+    tmp=$(mktemp -d "$HM_STATE/src/dl.XXXXXX")
+    curl -fsSL "https://gitlab.com/garuda-linux/themes-and-settings/artwork/beautyline/-/archive/$BL_REV/beautyline-$BL_REV.tar.gz" \
+      | tar -xz -C "$tmp" || die "could not download BeautyLine"
+    mv "$tmp"/beautyline-* "$bl_src" && rmdir "$tmp"
+  fi
+  breeze=$(ls -d /usr/share/icons/breeze-dark /usr/share/icons/breeze 2>/dev/null | head -1)
+  icons="$XDG_DATA_HOME/icons"
+  if [ -n "$breeze" ]; then
+    python3 "$REPO/scripts/icons.py" "$breeze" "$icons/Hackmachine-Breeze" "Hackmachine-Breeze" \
+      "breeze-dark,hicolor" --keep-semantic --symbolic-only
+  fi
+  python3 "$REPO/scripts/icons.py" "$bl_src" "$icons/Hackmachine" "Hackmachine" \
+    "Hackmachine-Breeze,breeze-dark,hicolor"
+  install -Dm644 "$REPO/theme/icons/hackmachine.svg" "$icons/Hackmachine/apps/scalable/hackmachine.svg"
   changeicons=$(ls /usr/libexec/plasma-changeicons /usr/lib/*/libexec/plasma-changeicons \
                    /usr/lib/libexec/plasma-changeicons 2>/dev/null | head -1 || true)
-  if [ -n "$changeicons" ]; then "$changeicons" breeze-dark >/dev/null 2>&1 || true
-  else kwrite --file kdeglobals --group Icons --key Theme breeze-dark; fi
+  if [ -n "$changeicons" ]; then "$changeicons" Hackmachine >/dev/null 2>&1 || true
+  else kwrite --file kdeglobals --group Icons --key Theme Hackmachine; fi
+  ok "icon theme Hackmachine"
 fi
-ok "Hackmachine colours, Breeze style, breeze-dark icons"
 
 # ── 3 · fonts: monospace everywhere ──────────────────────────────────────────
 step "fonts → $FONT"
@@ -116,13 +143,15 @@ ok "fonts set"
 
 # ── 4 · windows ─────────────────────────────────────────────────────────────
 step "window decoration + rules"
-kwrite --file kwinrc --group org.kde.kdecoration2 --key library org.kde.breeze
-kwrite --file kwinrc --group org.kde.kdecoration2 --key theme Breeze
+deco="$XDG_DATA_HOME/aurorae/themes/Hackmachine"
+rm -rf "$deco"
+python3 "$REPO/scripts/themegen.py" aurorae "$deco"
+kwrite --file kwinrc --group org.kde.kdecoration2 --key library org.kde.kwin.aurorae
+kwrite --file kwinrc --group org.kde.kdecoration2 --key theme __aurorae__svg__Hackmachine
+kwrite --file kwinrc --group org.kde.kdecoration2 --key BorderSize Normal
 kwrite --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft "M"
 kwrite --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight "IAX"
 kwrite --file kwinrc --group Plugins --key blurEnabled true
-kwrite --file breezerc --group Windeco --key TitleAlignment AlignLeft
-kwrite --file breezerc --group Common --key OutlineIntensity OutlineHigh
 
 # hm-menu: borderless, centred, on top, out of the taskbar
 R=hackmachine-menu
@@ -150,7 +179,7 @@ kwrite --file kwinrulesrc --group General --key rules "$rules"
 kwrite --file kwinrulesrc --group General --key count "$(awk -F, '{print NF}' <<<"$rules")"
 qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 \
   || gdbus call --session --dest org.kde.KWin --object-path /KWin --method org.kde.KWin.reconfigure >/dev/null
-ok "Breeze, left title, [_][□][x] on the right, hm-menu rule + placement script"
+ok "Hackmachine decoration: lavender focus ring, [_] [□] [x], hm-menu placement"
 
 # ── 5 · wallpaper with the key cheat-sheet, one per screen ──────────────────
 step "wallpapers"
@@ -180,7 +209,7 @@ ok "lock screen uses the primary screen's wallpaper"
 # ── 6 · taskbar ─────────────────────────────────────────────────────────────
 if [ "$DO_PANEL" = 1 ]; then
   step "taskbar"
-  plasma_eval "$(sed "s|__FONT__|$FONT|g" "$REPO/scripts/panel.js")" >/dev/null
+  plasma_eval "$(cat "$REPO/scripts/panel.js")" >/dev/null
   ok "bottom, 44px: λ hackmachine · pinned apps · cpu · tray · clock"
 fi
 
@@ -189,6 +218,15 @@ if [ "$DO_KEYS" = 1 ]; then
   step "global shortcuts"
   python3 "$REPO/scripts/shortcuts.py" bind "$REPO/config/shortcuts.conf" "$BIN"
 fi
+
+# plasmashell only reads fonts and the icon theme at start-up, so restart it once.
+step "restarting plasmashell"
+if systemctl --user is-active -q plasma-plasmashell.service 2>/dev/null; then
+  systemctl --user restart plasma-plasmashell.service
+else
+  kquitapp6 plasmashell >/dev/null 2>&1 || true; sleep 1; (setsid -f plasmashell >/dev/null 2>&1 &)
+fi
+ok "done"
 
 printf '\n%sλ hackmachine applied.%s  %sMeta+/ shows every key · Meta+Space opens the hack menu%s\n' \
   "$c_lav" "$c_off" "$c_muted" "$c_off"

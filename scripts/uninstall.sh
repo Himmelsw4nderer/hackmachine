@@ -11,7 +11,7 @@ step "restoring from ${src/#$HOME/\~}"
 python3 "$REPO/scripts/shortcuts.py" unbind || true
 
 # kwinrulesrc / breezerc / btop.conf etc. that did not exist before get removed, the rest restored.
-for f in kdeglobals kwinrc kwinrulesrc breezerc plasmarc konsolerc kscreenlockerrc plasmashellrc \
+for f in kdeglobals kwinrc kwinrulesrc plasmarc konsolerc kscreenlockerrc plasmashellrc \
          fastfetch/config.jsonc cava/config btop/btop.conf; do
   rel=".config/$f"
   if [ -e "$src/$rel" ]; then cp -a "$src/$rel" "$HOME/$rel"
@@ -32,7 +32,9 @@ source "$src/previous.env"
 changeicons=$(ls /usr/libexec/plasma-changeicons /usr/lib/*/libexec/plasma-changeicons 2>/dev/null | head -1 || true)
 [ -n "${icons:-}" ] && [ -n "$changeicons" ] && "$changeicons" "$icons" >/dev/null 2>&1 || true
 rm -f "$XDG_DATA_HOME/color-schemes/Hackmachine.colors"
-rm -rf "$XDG_DATA_HOME/kwin/scripts/hackmachine-menu"
+rm -rf "$XDG_DATA_HOME/kwin/scripts/hackmachine-menu" "$XDG_DATA_HOME/aurorae/themes/Hackmachine" \
+       "$XDG_DATA_HOME/plasma/desktoptheme/hackmachine" "$XDG_DATA_HOME/icons/Hackmachine" \
+       "$XDG_DATA_HOME/icons/Hackmachine-Breeze"
 qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 || true
 
 # The panel layout lives in plasmashell's own config: restart it to load the restored file.
