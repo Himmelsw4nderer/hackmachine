@@ -51,6 +51,8 @@ install -Dm644 "$REPO/theme/icons/hackmachine.svg" "$XDG_DATA_HOME/icons/hicolor
 install -Dm755 "$REPO/bin/hm-menu" "$BIN/hm-menu"
 install -Dm755 "$REPO/bin/hm-keys" "$BIN/hm-keys"
 install -Dm755 "$REPO/bin/hm-tray" "$BIN/hm-tray"
+install -Dm755 "$REPO/bin/hm-brave" "$BIN/hm-brave"
+rm -rf "$HM_SHARE/brave-theme"; cp -r "$REPO/theme/brave/hackmachine" "$HM_SHARE/brave-theme"
 install -Dm644 "$REPO/scripts/shortcuts.py" "$HM_SHARE/shortcuts.py"
 install -Dm644 "$REPO/config/shortcuts.conf" "$HM_SHARE/shortcuts.conf"
 install -Dm644 "$REPO/theme/shell/bashrc" "$HM_SHARE/bashrc"
@@ -186,6 +188,10 @@ if [ "$DO_ICONS" = 1 ]; then
                    /usr/lib/libexec/plasma-changeicons 2>/dev/null | head -1 || true)
   if [ -n "$changeicons" ]; then "$changeicons" Hackmachine >/dev/null 2>&1 || true
   else kwrite --file kdeglobals --group Icons --key Theme Hackmachine; fi
+  # tell running apps (KWin's title bars too) to reload icons now instead of at the next login
+  for g in 0 1 2 3 4 5; do
+    dbus-send --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:$g 2>/dev/null || true
+  done
   ok "icon theme Hackmachine"
 fi
 
@@ -197,7 +203,8 @@ kwrite --file kdeglobals --group General --key fixed "$(f 10 400)"
 kwrite --file kdeglobals --group General --key menuFont "$(f 10 400)"
 kwrite --file kdeglobals --group General --key toolBarFont "$(f 10 400)"
 kwrite --file kdeglobals --group General --key smallestReadableFont "$(f 8 400)"
-kwrite --file kdeglobals --group WM --key activeFont "$(f 10 700)"
+kwriteconfig6 --notify --file kdeglobals --group WM --key activeFont "$(f 10 700)" 2>/dev/null \
+  || kwrite --file kdeglobals --group WM --key activeFont "$(f 10 700)"
 ok "fonts set"
 
 # ── 4 · windows ─────────────────────────────────────────────────────────────
@@ -324,4 +331,5 @@ pkill -f "$BIN/hm-tr[a]y" 2>/dev/null || true
 
 printf '\n%sλ hackmachine applied.%s  %sMeta+/ shows every key · Meta+Space opens the hack menu%s\n' \
   "$c_lav" "$c_off" "$c_muted" "$c_off"
-printf '%s  Log out and back in once so every app picks up the new fonts.%s\n' "$c_muted" "$c_off"
+printf '%s  Log out and back in once so window title bars (KWin) pick up the new icons and fonts.%s\n' "$c_muted" "$c_off"
+printf '%s  Brave: run hm-brave once to load the Hackmachine browser theme.%s\n' "$c_muted" "$c_off"

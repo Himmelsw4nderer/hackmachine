@@ -20,12 +20,13 @@ done
 [ -e "$src/.bashrc" ] && cp -a "$src/.bashrc" "$HOME/.bashrc" || sed -i '/# hackmachine$/d' "$HOME/.bashrc"
 [ -e "$src/.zshrc" ] && cp -a "$src/.zshrc" "$HOME/.zshrc" || sed -i '/# hackmachine$/d' "$HOME/.zshrc" 2>/dev/null
 rm -f "$HOME/.oh-my-zsh/custom/themes/hackmachine.zsh-theme" "$XDG_DATA_HOME/hackmachine/zshrc"
+rm -rf "$XDG_DATA_HOME/hackmachine/brave-theme"  # Brave keeps working; remove the theme in brave://extensions
 if [ -f "$HM_STATE/omz-installed-by-hackmachine" ]; then
   rm -rf "$HOME/.oh-my-zsh" "$HM_STATE/omz-installed-by-hackmachine"
 fi
 
 pkill -f "hm-tr[a]y" 2>/dev/null || true
-rm -f "$HOME/.local/bin/hm-menu" "$HOME/.local/bin/hm-keys" "$HOME/.local/bin/hm-tray" \
+rm -f "$HOME/.local/bin/hm-menu" "$HOME/.local/bin/hm-keys" "$HOME/.local/bin/hm-tray" "$HOME/.local/bin/hm-brave" \
       "$XDG_CONFIG_HOME/autostart/hackmachine-tray.desktop" "$HM_STATE/tray-seen" \
       "$XDG_DATA_HOME/konsole/Hackmachine.profile" "$XDG_DATA_HOME/konsole/Hackmachine.colorscheme" \
       "$XDG_DATA_HOME/icons/hicolor/scalable/apps/hackmachine.svg" \

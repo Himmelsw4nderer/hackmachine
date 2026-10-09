@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Hackmachine",
+  "version": "1.0",
+  "description": "Cocoa browns, cream text and lavender accents to match the Hackmachine KDE desktop.",
+  "icons": { "128": "icon128.png" },
+  "theme": {
+    "colors": {
+      "frame":                         [26, 22, 20],
+      "frame_inactive":                [26, 22, 20],
+      "frame_incognito":               [26, 22, 20],
+      "frame_incognito_inactive":      [26, 22, 20],
+      "background_tab":                [26, 22, 20],
+      "background_tab_inactive":       [26, 22, 20],
+      "background_tab_incognito":      [26, 22, 20],
+      "toolbar":                       [42, 36, 32],
+      "toolbar_text":                  [246, 236, 228],
+      "toolbar_button_icon":           [196, 178, 245],
+      "tab_text":                      [246, 236, 228],
+      "tab_background_text":           [191, 174, 159],
+      "tab_background_text_inactive":  [125, 109, 98],
+      "bookmark_text":                 [246, 236, 228],
+      "omnibox_background":            [34, 29, 26],
+      "omnibox_text":                  [246, 236, 228],
+      "button_background":             [55, 47, 42],
+      "ntp_background":                [26, 22, 20],
+      "ntp_header":                    [42, 36, 32],
+      "ntp_text":                      [246, 236, 228],
+      "ntp_link":                      [196, 178, 245],
+      "control_button_background":     [26, 22, 20]
+    },
+    "tints": {
+      "buttons": [0.72, 0.6, 0.85]
+    },
+    "properties": {
+      "ntp_background_alignment": "bottom",
+      "ntp_logo_alternate": 1
+    }
+  }
+}

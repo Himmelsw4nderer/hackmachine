@@ -240,9 +240,10 @@ def aurorae(dest):
     dest = Path(dest)
     dest.mkdir(parents=True, exist_ok=True)
     d = Doc()
-    # active: lavender ring (focus), rounded top corners (radius-md); inactive: hairline
-    frame(d, "decoration", 6, BG100, border=(LAVENDER, 1, 1), radius=6, round_corners="tl tr")
-    frame(d, "decoration-inactive", 6, BG100, border=(LINE, 1, 1), radius=6, round_corners="tl tr")
+    # active: lavender ring (focus); inactive: hairline. Square corners: KWin draws the frame edges
+    # through the corner cells, so a rounded corner shows a stray square outline behind it.
+    frame(d, "decoration", 6, BG100, border=(LAVENDER, 1, 1))
+    frame(d, "decoration-inactive", 6, BG100, border=(LINE, 1, 1))
     frame(d, "decoration-maximized", 6, BG100)
     frame(d, "decoration-maximized-inactive", 6, BG000)
     (dest / "decoration.svg").write_text(d.svg())
