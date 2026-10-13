@@ -32,7 +32,7 @@ case "$fam" in
     ;;
 esac
 
-# VT323 pixel font (clock / headings) is not packaged anywhere; fetch it from Google Fonts.
+# VT323 pixel font (wallpaper headings) is not packaged anywhere; fetch it from Google Fonts.
 fontdir="$XDG_DATA_HOME/fonts/hackmachine"
 if ! fc-list | grep -q VT323; then
   mkdir -p "$fontdir"
@@ -40,7 +40,7 @@ if ! fc-list | grep -q VT323; then
        https://raw.githubusercontent.com/google/fonts/main/ofl/vt323/VT323-Regular.ttf; then
     fc-cache -f "$fontdir" >/dev/null && ok "VT323 installed"
   else
-    warn "could not download VT323; the clock falls back to JetBrains Mono"
+    warn "could not download VT323; wallpaper headings fall back to JetBrains Mono"
   fi
 fi
 ok "packages done"

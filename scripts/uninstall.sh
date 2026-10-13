@@ -25,11 +25,25 @@ if [ -f "$HM_STATE/omz-installed-by-hackmachine" ]; then
   rm -rf "$HOME/.oh-my-zsh" "$HM_STATE/omz-installed-by-hackmachine"
 fi
 
+# Zed may have been themed after the first backup, so take the oldest backup that has its settings.
+for zd in "$XDG_CONFIG_HOME/zed" "$HOME/.var/app/dev.zed.Zed/config/zed"; do
+  [ -e "$zd/themes/hackmachine.json" ] || continue
+  rm -f "$zd/themes/hackmachine.json"
+  rel=${zd#"$HOME"/}/settings.json
+  if grep -qxF "$zd/settings.json" "$HM_STATE/zed-created" 2>/dev/null; then
+    rm -f "$zd/settings.json"; continue
+  fi
+  for b in "$src" $(ls -d "$HM_STATE"/backup-* 2>/dev/null | sort); do
+    [ -e "$b/$rel" ] && { cp -a "$b/$rel" "$HOME/$rel"; break; }
+  done
+done
+rm -f "$HM_STATE/zed-created"
+
 pkill -f "hm-tr[a]y" 2>/dev/null || true
 rm -f "$HOME/.local/bin/hm-menu" "$HOME/.local/bin/hm-keys" "$HOME/.local/bin/hm-tray" "$HOME/.local/bin/hm-brave" \
       "$XDG_CONFIG_HOME/autostart/hackmachine-tray.desktop" "$HM_STATE/tray-seen" \
       "$XDG_DATA_HOME/konsole/Hackmachine.profile" "$XDG_DATA_HOME/konsole/Hackmachine.colorscheme" \
-      "$XDG_DATA_HOME/icons/hicolor/scalable/apps/hackmachine.svg" \
+      "$XDG_DATA_HOME/icons/hicolor/scalable/apps/hackmachine.svg" "$XDG_DATA_HOME/icons/hicolor/scalable/apps/hackmachine-start.svg" \
       "$XDG_CONFIG_HOME/fastfetch/candy-logo.txt" \
       "$XDG_STATE_HOME/hackmachine/menu-config/konsolerc" \
       "$XDG_DATA_HOME/kxmlgui5/konsole/konsoleui.rc" "$XDG_DATA_HOME/kxmlgui5/konsole/sessionui.rc" "$XDG_CONFIG_HOME/btop/themes/hackmachine.theme"

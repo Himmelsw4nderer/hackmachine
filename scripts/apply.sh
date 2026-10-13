@@ -48,6 +48,7 @@ step "installing theme files"
 install -Dm644 "$REPO/theme/color-schemes/Hackmachine.colors" "$XDG_DATA_HOME/color-schemes/Hackmachine.colors"
 install -Dm644 "$REPO/theme/konsole/Hackmachine.colorscheme" "$XDG_DATA_HOME/konsole/Hackmachine.colorscheme"
 install -Dm644 "$REPO/theme/icons/hackmachine.svg" "$XDG_DATA_HOME/icons/hicolor/scalable/apps/hackmachine.svg"
+install -Dm644 "$REPO/theme/icons/hackmachine-start.svg" "$XDG_DATA_HOME/icons/hicolor/scalable/apps/hackmachine-start.svg"
 install -Dm755 "$REPO/bin/hm-menu" "$BIN/hm-menu"
 install -Dm755 "$REPO/bin/hm-keys" "$BIN/hm-keys"
 install -Dm755 "$REPO/bin/hm-tray" "$BIN/hm-tray"
@@ -117,6 +118,20 @@ fi
 kwrite --file konsolerc --group KonsoleWindow --key ShowMenuBarByDefault false
 ok "konsole profile, fastfetch, btop, cava, hm-menu, hm-keys"
 
+# Zed: native (~/.config/zed) and Flatpak (its own config dir) each get the theme + font.
+zed_dirs=()
+{ [ -d "$CFG/zed" ] || have zed || have zeditor; } && zed_dirs+=("$CFG/zed")
+zflat="$HOME/.var/app/dev.zed.Zed/config/zed"
+{ [ -d "$zflat" ] || flatpak info dev.zed.Zed >/dev/null 2>&1; } && zed_dirs+=("$zflat")
+for zd in "${zed_dirs[@]}"; do
+  backup "$zd/settings.json"
+  # remember settings files we create, so uninstall deletes them instead of restoring ours
+  [ -e "$zd/settings.json" ] || echo "$zd/settings.json" >> "$HM_STATE/zed-created"
+  install -Dm644 "$REPO/theme/zed/hackmachine.json" "$zd/themes/hackmachine.json"
+  python3 "$REPO/scripts/zed.py" "$zd/settings.json" "$FONT"
+  ok "zed theme Hackmachine + $FONT → ${zd/#$HOME/\~}"
+done
+
 if [ "$DO_SHELL" = 1 ]; then
   hook='[ -f "$HOME/.local/share/hackmachine/bashrc" ] && . "$HOME/.local/share/hackmachine/bashrc"  # hackmachine'
   grep -qF '# hackmachine' "$HOME/.bashrc" 2>/dev/null || printf '\n%s\n' "$hook" >> "$HOME/.bashrc"
@@ -184,6 +199,9 @@ if [ "$DO_ICONS" = 1 ]; then
   python3 "$REPO/scripts/icons.py" "$bl_src" "$icons/Hackmachine" "Hackmachine" \
     "Hackmachine-Breeze,breeze-dark,hicolor"
   install -Dm644 "$REPO/theme/icons/hackmachine.svg" "$icons/Hackmachine/apps/scalable/hackmachine.svg"
+  install -Dm644 "$REPO/theme/icons/hackmachine-start.svg" "$icons/Hackmachine/apps/scalable/hackmachine-start.svg"
+  # thin line chevrons instead of BeautyLine's filled ones (the tray's ^ among them)
+  for a in "$REPO"/theme/icons/arrows/*.svg; do install -Dm644 "$a" "$icons/Hackmachine/actions/scalable/${a##*/}"; done
   changeicons=$(ls /usr/libexec/plasma-changeicons /usr/lib/*/libexec/plasma-changeicons \
                    /usr/lib/libexec/plasma-changeicons 2>/dev/null | head -1 || true)
   if [ -n "$changeicons" ]; then "$changeicons" Hackmachine >/dev/null 2>&1 || true
@@ -247,6 +265,20 @@ qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 \
   || gdbus call --session --dest org.kde.KWin --object-path /KWin --method org.kde.KWin.reconfigure >/dev/null
 ok "Hackmachine decoration: lavender focus ring, [_] [□] [x], hm-menu placement"
 
+# plasmashell only reads fonts and the icon theme at start-up, so restart it once, before the
+# wallpaper, taskbar and widgets go in: it saves widget positions with a delay, and a restart
+# right after placing them can lose them.
+step "restarting plasmashell"
+if systemctl --user is-active -q plasma-plasmashell.service 2>/dev/null; then
+  systemctl --user restart plasma-plasmashell.service
+else
+  kquitapp6 plasmashell >/dev/null 2>&1 || true; sleep 1; (setsid -f plasmashell >/dev/null 2>&1 &)
+fi
+for _ in $(seq 30); do [ -n "$(screens 2>/dev/null)" ] && break; sleep 1; done
+SCREENS=$(screens)
+[ -n "$SCREENS" ] || die "plasmashell did not come back after the restart"
+ok "plasmashell restarted"
+
 # ── 5 · wallpaper with the key cheat-sheet, one per screen ──────────────────
 step "wallpapers"
 render() {  # svg png
@@ -260,8 +292,8 @@ while read -r id screen x y w h; do
   # the primary screen holds the taskbar, so the banner moves up there
   panel=0; [ "$screen" = 0 ] && panel=44
   png="$HM_SHARE/wallpaper-${w}x${h}-p$panel.png"
-  # portrait screens hand the middle band to the desktop widgets, so the skull goes
-  skull=""; [ "$DO_WIDGETS" = 1 ] && [ "$h" -gt "$w" ] && skull=--no-skull
+  # the desktop widgets take the free area, so the skull goes
+  skull=""; [ "$DO_WIDGETS" = 1 ] && skull=--no-skull
   python3 "$REPO/scripts/wallpaper.py" "$REPO/config/shortcuts.conf" "${png%.png}.svg" "${w}x$h" "$FONT" "$panel" $skull
   layout_in+="$id $screen $w $h ${png%.png}.json"$'\n'
   render "${png%.png}.svg" "$png"
@@ -281,14 +313,14 @@ if [ "$DO_PANEL" = 1 ]; then
   launchers=$(python3 "$REPO/scripts/apps.py" "$REPO/config/apps.conf" launchers)
   plasma_eval "$(sed "s|__LAUNCHERS__|$launchers|" "$REPO/scripts/panel.js")" >/dev/null
   rm -f "$HM_STATE/tray-seen"   # new tray: hide everything again
-  ok "three islands: launcher + apps · colourful clock · tray"
+  ok "one auto-hiding bar: launcher + apps · colourful clock · tray"
 fi
 
 # ── 6a · desktop widgets on every screen ────────────────────────────────────
 if [ "$DO_WIDGETS" = 1 ]; then
   step "desktop widgets: clock, system, apps on every screen"
   apps_json=$(python3 "$REPO/scripts/apps.py" "$REPO/config/apps.conf" json)
-  # 44px island + its float margin
+  # 44px bar + its float margin
   for mode in remove add; do
     plasma_eval "$(printf '%s' "$layout_in" | python3 "$REPO/scripts/layout.py" "$apps_json" "$BIN/hm-menu" 64 $mode)" >/dev/null
     [ $mode = remove ] && sleep 2
@@ -316,14 +348,6 @@ if [ "$DO_KEYS" = 1 ]; then
   python3 "$REPO/scripts/shortcuts.py" bind "$REPO/config/shortcuts.conf" "$BIN"
 fi
 
-# plasmashell only reads fonts and the icon theme at start-up, so restart it once.
-step "restarting plasmashell"
-if systemctl --user is-active -q plasma-plasmashell.service 2>/dev/null; then
-  systemctl --user restart plasma-plasmashell.service
-else
-  kquitapp6 plasmashell >/dev/null 2>&1 || true; sleep 1; (setsid -f plasmashell >/dev/null 2>&1 &)
-fi
-ok "done"
 
 # The tray watcher starts only now, once the restarted plasmashell is there to talk to.
 pkill -f "$BIN/hm-tr[a]y" 2>/dev/null || true

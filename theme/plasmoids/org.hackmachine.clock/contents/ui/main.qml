@@ -1,6 +1,6 @@
 // TIME // LOCAL: the Hackmachine clock.
-//   on the desktop: a big VT323 clock, one pastel per digit, with the date and ISO week
-//   in a panel:     a compact colourful line (day · date · HH:MM:SS); click for a calendar
+//   on the desktop: a big clock drawn with # in monospace, one pastel per digit, with the date and ISO week
+//   in a panel:     a big rainbow HH:MM with day/date and week/seconds stacked beside it; click for a calendar
 import QtQuick
 import QtQuick.Layouts
 import org.kde.plasma.plasmoid
@@ -15,6 +15,29 @@ PlasmoidItem {
     readonly property bool inPanel: Plasmoid.formFactor === PlasmaCore.Types.Horizontal
                                     || Plasmoid.formFactor === PlasmaCore.Types.Vertical
     property date now: new Date()
+    // digits drawn with # on a 5x5 grid, so the whole clock is one block of monospace text
+    readonly property var glyphs: ({
+        "0": ["#####", "#   #", "#   #", "#   #", "#####"],
+        "1": ["  #  ", " ##  ", "  #  ", "  #  ", " ### "],
+        "2": ["#####", "    #", "#####", "#    ", "#####"],
+        "3": ["#####", "    #", " ####", "    #", "#####"],
+        "4": ["#   #", "#   #", "#####", "    #", "    #"],
+        "5": ["#####", "#    ", "#####", "    #", "#####"],
+        "6": ["#####", "#    ", "#####", "#   #", "#####"],
+        "7": ["#####", "    #", "   # ", "  #  ", "  #  "],
+        "8": ["#####", "#   #", "#####", "#   #", "#####"],
+        "9": ["#####", "#   #", "#####", "    #", "#####"],
+        ":": ["   ", " # ", "   ", " # ", "   "]
+    })
+    // one StyledText block: row by row, each character in its own pastel, spaces kept as &nbsp;
+    function hashArt(text, colorOf) {
+        const rows = []
+        for (let r = 0; r < 5; r++) {
+            rows.push(text.split("").map((c, i) =>
+                span(glyphs[c][r].replace(/ /g, "&nbsp;"), colorOf(c, i))).join("&nbsp;"))
+        }
+        return rows.join("<br>")
+    }
 
     preferredRepresentation: inPanel ? compactRepresentation : fullRepresentation
     Plasmoid.backgroundHints: inPanel ? PlasmaCore.Types.NoBackground
@@ -40,12 +63,13 @@ PlasmoidItem {
             + span(t[2], hues[4]) + span(t[3], hues[5])
     }
 
-    // ── panel: fri 09.10 · 16:34 :26 ──
+    // ── panel: big rainbow 21:09 as tall as the app icons, with day/date over week/seconds beside it ──
     compactRepresentation: MouseArea {
         id: compact
-        readonly property real fs: Math.max(11, Math.min(height * 0.42, 18))
-        Layout.minimumWidth: line.implicitWidth + 16
-        Layout.preferredWidth: line.implicitWidth + 16
+        readonly property real big: Math.max(14, height * 0.62)
+        readonly property real small: Math.max(9, height * 0.27)
+        Layout.minimumWidth: line.implicitWidth + 20
+        Layout.preferredWidth: line.implicitWidth + 20
         hoverEnabled: true
         onClicked: root.expanded = !root.expanded
 
@@ -60,16 +84,33 @@ PlasmoidItem {
             width: root.expanded ? 28 : 0; height: 3
             color: "#c4b2f5"
         }
-        Text {
+        Row {
             id: line
             anchors.centerIn: parent
-            textFormat: Text.StyledText
-            font { family: root.mono; pixelSize: compact.fs; bold: true }
-            text: root.span(Qt.formatDate(root.now, "ddd").toLowerCase(), "#e2b5f0") + " "
-                + root.span(Qt.formatDate(root.now, "dd.MM"), "#f9c49a")
-                + root.span("  ·  ", "#7d6d62")
-                + root.rainbowTime()
-                + "<small>" + root.span(" " + root.pad(root.now.getSeconds()), "#c4b2f5") + "</small>"
+            spacing: compact.small * 0.7
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                textFormat: Text.StyledText
+                font { family: root.mono; pixelSize: compact.big; bold: true }
+                text: root.rainbowTime()
+            }
+            Column {
+                anchors.verticalCenter: parent.verticalCenter
+                Text {
+                    textFormat: Text.StyledText
+                    font { family: root.mono; pixelSize: compact.small; bold: true }
+                    lineHeight: 0.9
+                    text: root.span(Qt.formatDate(root.now, "ddd").toLowerCase(), "#e2b5f0") + " "
+                        + root.span(Qt.formatDate(root.now, "dd.MM"), "#f9c49a")
+                }
+                Text {
+                    textFormat: Text.StyledText
+                    font { family: root.mono; pixelSize: compact.small; bold: true }
+                    lineHeight: 0.9
+                    text: root.span("wk" + root.pad(root.isoWeek(root.now)), "#7d6d62") + " "
+                        + root.span(":" + root.pad(root.now.getSeconds()), "#c4b2f5")
+                }
+            }
         }
     }
 
@@ -89,23 +130,30 @@ PlasmoidItem {
             Text { text: Qt.formatDate(root.now, "dddd").toLowerCase(); color: "#7d6d62"; font { family: root.mono; pixelSize: Math.max(10, col.big * 0.09) } }
         }
         Item { Layout.fillHeight: true; Layout.minimumHeight: 6 }
+        FontMetrics { id: fm; font { family: root.mono; pixelSize: 100; bold: true } }
         Row {
+            id: art
             Layout.alignment: Qt.AlignHCenter
-            spacing: 0
-            Repeater {
-                model: (root.pad(root.now.getHours()) + ":" + root.pad(root.now.getMinutes())).split("")
-                Text {
-                    required property string modelData
-                    required property int index
-                    text: modelData
-                    color: modelData === ":" ? (root.now.getSeconds() % 2 ? "#7d6d62" : "#bfae9f") : root.hues[index * 2 % 9]
-                    font { family: "VT323"; pixelSize: col.big }
-                }
+            spacing: fs * fm.averageCharacterWidth / 100 * 2
+            // HH:MM is 27 columns; the seconds beside it at half size add about 7 more
+            readonly property real fs: root.inPanel ? Kirigami.Units.gridUnit * 0.8
+                : Math.min(col.width / (36 * fm.averageCharacterWidth / 100), (col.height - 100) / 5)
+            Text {
+                textFormat: Text.StyledText
+                font { family: root.mono; pixelSize: art.fs; bold: true }
+                lineHeightMode: Text.FixedHeight
+                lineHeight: art.fs
+                text: root.hashArt(root.pad(root.now.getHours()) + ":" + root.pad(root.now.getMinutes()),
+                                   (c, i) => c === ":" ? (root.now.getSeconds() % 2 ? "#7d6d62" : "#bfae9f")
+                                                       : root.hues[i * 2 % 9])
             }
             Text {
-                text: " " + root.pad(root.now.getSeconds())
-                color: "#c4b2f5"
-                font { family: "VT323"; pixelSize: col.big * 0.38 }
+                y: parent.height - height
+                textFormat: Text.StyledText
+                font { family: root.mono; pixelSize: art.fs * 0.5; bold: true }
+                lineHeightMode: Text.FixedHeight
+                lineHeight: art.fs * 0.5
+                text: root.hashArt(root.pad(root.now.getSeconds()), () => "#c4b2f5")
             }
         }
         Item { Layout.fillHeight: true; Layout.minimumHeight: 4 }

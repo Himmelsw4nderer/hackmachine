@@ -24,23 +24,26 @@ Options (passed through to `scripts/apply.sh`): `--no-panel` keeps your panels, 
 | --- | --- |
 | **Colours** | `Hackmachine` Plasma colour scheme, used by the Breeze application style. |
 | **Plasma style** | `hackmachine`, generated from the design tokens. Flat cocoa taskbar with a hairline on top. Task buttons: a short faint bar while running, a tile plus a lavender bar when focused, a coral bar when asking for attention. Popups are rounded with a lavender ring. Everything else falls back to Breeze. |
-| **Icons** | `Hackmachine`: the BeautyLine line-icon theme (fetched at a pinned commit, GPL-3) repainted so each icon is **one pastel chosen by category**. Media is pink, security coral, time and transfers peach, files butter, dev mint, chat teal, web sky, system lavender and session lilac. App icons are categorised from their `.desktop` Categories, others by name. Underneath it, `Hackmachine-Breeze` repaints Breeze's small symbolic icons (tray, toolbars) the same way. |
+| **Icons** | `Hackmachine`: the BeautyLine line-icon theme (fetched at a pinned commit, GPL-3) repainted so each icon is **one pastel chosen by category**. Media is pink, security coral, time and transfers peach, files butter, dev mint, chat teal, web sky, system lavender and session lilac. App icons are categorised from their `.desktop` Categories, others by name. The arrows (the tray's `^` too) are thin line chevrons instead of BeautyLine's filled ones. Underneath it, `Hackmachine-Breeze` repaints Breeze's small symbolic icons (tray, toolbars) the same way. |
 | **Fonts** | JetBrains Mono for every UI font, with bold window titles. The Nerd Font build is used if that's the one installed. VT323 is fetched for pixel headings. |
 | **Windows** | `Hackmachine` Aurorae decoration (generated SVG). Cocoa title bar with the title on the left and bracketed `[_] [□] [x]` buttons on the right; close turns coral on hover. Square corners; the active window gets a 1px lavender ring and inactive ones a hairline. Blur is on. |
-| **Taskbar** | Three floating islands at the bottom of the primary screen: the hexagon-λ launcher and pinned apps on the left, a colourful clock in the centre (`fri 09.10 · 16:34 47`, one pastel per digit; click for a calendar), the tray and show-desktop on the right. Each island is a rounded cocoa pill with a hairline border. |
-| **Desktop widgets** | Three custom Plasma widgets are placed on **every connected screen**, in the space the wallpaper leaves free. On landscape screens: clock top-left, apps and system side by side at the bottom. On portrait screens: stacked between the cheat-sheet and the banner. `TIME // LOCAL` is a big VT323 clock, one pastel per digit, with date, ISO week and day of month. `SYS // LIVE` shows CPU/GPU/RAM/disk as `[████░░]` bars with temperatures, network up/down as sparklines, and uptime. `APPS // PINNED` has numbered app tiles that scale with the card; its footer opens the hack menu. |
+| **Taskbar** | One floating bar along the bottom of the primary screen that **auto-hides**: push the mouse against the bottom edge anywhere to bring it back. Left: the filled rainbow hexagon-λ start button (set apart from the single-pastel line icons of the apps) and pinned apps. Centre: a colourful clock (a big rainbow `16:34` as tall as the app icons, with `fri 09.10` over `wk41 :47` beside it; click for a calendar). Right: the tray, its icons scaled to the same size as the apps. It's one bar rather than separate islands because Plasma only reveals an auto-hidden panel from the stretch of screen edge right under it. |
+| **Desktop widgets** | Three custom Plasma widgets are placed on **every connected screen**, in the space the wallpaper leaves free. Everything sits on Plasma's 16px widget grid, and the wallpaper's cards are snapped to the same grid, so the widget frames line up exactly with the cheat-sheet and whoami cards, with the same 32px gaps. On landscape screens: clock and apps level with the cheat-sheet, the system card below them from the whoami card's top to above the banner. On portrait screens: stacked between the cards and the banner, as wide as the cards. `TIME // LOCAL` is a big clock drawn with `#` in monospace, one pastel per digit, with date, ISO week and day of month. `SYS // LIVE` shows CPU/GPU/RAM/disk as `[████░░]` bars with temperatures, network up/down as sparklines, and uptime. `APPS // PINNED` has numbered app tiles that scale with the card; its footer opens the hack menu. |
 | **Tray** | Only network, sound, microphone and battery stay visible. Everything else, Plasma's own entries and app icons alike, goes into the `^` popup. `hm-tray` runs at login and hides tray icons from apps that start later. Each entry is hidden only the first time it appears, so anything you set to "Always shown" stays. Edit `SHOW` in `bin/hm-tray` to change the list. |
-| **Wallpaper** | Rendered **per screen at its real size**, so rotated or portrait monitors get a stacked layout. It has a dot grid, a faint ASCII skull (landscape only), a **key cheat-sheet**, a `whoami` card and the rainbow `HACKMACHINE` banner. The lock screen gets it too. |
+| **Wallpaper** | Rendered **per screen at its real size**, so rotated or portrait monitors get a stacked layout. It has a dot grid, a faint ASCII skull (only without the desktop widgets), a **key cheat-sheet**, a `whoami` card and the rainbow `HACKMACHINE` banner. The lock screen gets it too. |
 | **Hack menu** | `Meta+Space` opens a borderless, centred fzf launcher. It shows a rainbow figlet banner, all apps, and lock, log out, reboot and shutdown. |
 | **Terminal** | Konsole profile `Hackmachine` runs **zsh with oh-my-zsh** and the `hackmachine` theme: a two-line prompt (`╭─λ user@host ─ ~/path ─  branch ✓` / `╰─❯`). The right side shows the conda/venv env, how long the last command took, a failed command's exit code, and the time. Autosuggestions and syntax highlighting are in the pastels. Your own `~/.zshrc` is kept; one line is added at its top. Pastel 16-colour palette, 92% opacity with blur, fastfetch with the candy logo. **No toolbars**: only the window decoration and the terminal (Konsole's own layout files with the toolbars stripped; menus via Ctrl+Shift+M or right-click). |
 | **Brave** | `theme/brave/hackmachine`: a browser theme in the same cocoa and lavender palette. Chromium only installs local themes through its own UI, so run `hm-brave` once: it opens the extensions page, copies the theme's path to the clipboard and tells you the two clicks (Developer mode → Load unpacked). |
+| **Zed** | `theme/zed/hackmachine.json`: a Zed theme in the same cocoa and pastel palette (lavender keywords and focus, mint strings, sky functions, butter types). It goes into the native (`~/.config/zed`) and the Flatpak (`~/.var/app/dev.zed.Zed/config/zed`) config, whichever is there. `settings.json` gets `theme` and JetBrains Mono as buffer and UI font; the file's other settings and comments stay as they are. Zed picks it up live. |
 | **Extras** | Themes for btop and cava (rainbow bars). |
 
 ## Pinned apps
 
 `config/apps.conf` lists the pinned apps, used by both the taskbar and the desktop card. Each line
 has a label, a category colour and the `.desktop` ids to try, so one line covers the native,
-Flatpak and Snap builds of an app. Edit it and run `./install.sh --no-deps`.
+Flatpak and Snap builds of an app. If a pinned app isn't installed, its slot goes to the first
+installed app from the `[fill]` list below it (Zed, VS Code, Firefox, Zen, Spotify, Signal,
+Obsidian, Kate, System Monitor), so the card is always full. Edit it and run `./install.sh --no-deps`.
 
 ## Shortcuts
 
@@ -75,17 +78,18 @@ scripts/apply.sh        everything per-user; backs up first to ~/.local/state/ha
 scripts/uninstall.sh    restores the oldest backup, removes our files
 scripts/wallpaper.py    SVG wallpaper generator (stdlib only), rendered with rsvg-convert/inkscape/magick
 scripts/shortcuts.py    binds/unbinds global shortcuts, prints the cheat-sheet
-scripts/panel.js        Plasma scripting for the taskbar islands
+scripts/panel.js        Plasma scripting for the taskbar
 scripts/apps.py         resolves config/apps.conf to installed .desktop files
 scripts/layout.py       places the desktop widgets on each screen around the wallpaper
 scripts/icons.py        repaints an icon theme, one pastel per icon by category
 scripts/themegen.py     generates the Plasma style and the Aurorae decoration
+scripts/zed.py          sets the theme and font in Zed's settings.json (JSONC, edited in place)
 config/shortcuts.conf   key bindings + cheat-sheet rows
 config/apps.conf        pinned apps (taskbar + desktop card)
 bin/hm-menu, hm-keys    the launcher and the cheat-sheet viewer (installed to ~/.local/bin)
 bin/hm-tray             keeps the tray minimal (autostarted)
 bin/hm-brave            loads the Brave theme
-theme/                  colour schemes, Konsole, fastfetch, btop, cava, icon, shell, KWin script
+theme/                  colour schemes, Konsole, fastfetch, btop, cava, Zed, icon, shell, KWin script
 ```
 
 ## Palette

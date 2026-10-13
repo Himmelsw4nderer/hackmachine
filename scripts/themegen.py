@@ -133,7 +133,7 @@ def plasma(dest):
     (dest / "widgets").mkdir(parents=True, exist_ok=True)
     (dest / "dialogs").mkdir(parents=True, exist_ok=True)
 
-    # Taskbar islands: rounded cocoa pills with a hairline (FrameSvg drops the edge that touches
+    # Taskbar: a rounded cocoa pill with a hairline (FrameSvg drops the edge that touches
     # the screen when a maximised window un-floats the panel).
     d = Doc()
     frame(d, "", 8, BG100, 0.97, border=(LINE, 1, 1), radius=8, margins=(4, 6, 4, 6))

@@ -7,6 +7,7 @@ usage: wallpaper.py CONF OUT.svg WIDTHxHEIGHT "Font Family" [panel_height] [--no
 Also writes OUT.json with the boxes of the cards and the banner.
 """
 import json
+import math
 import os
 import platform
 import socket
@@ -95,6 +96,18 @@ def split_columns(groups, n=2):
     return cols
 
 
+# Plasma snaps desktop widgets to a 16px grid, so the cards sit on it too and widgets can line up with them.
+GRID = 16
+
+
+def snap(v):
+    return round(v / GRID) * GRID
+
+
+def grow(v):
+    return math.ceil(v / GRID) * GRID
+
+
 def main():
     conf, out, size, font = sys.argv[1:5]
     panel = int(sys.argv[5]) if len(sys.argv) > 5 else 44
@@ -134,10 +147,11 @@ def main():
     col_rows = [sum(len(g[1]) + 1.6 for g in col) for col in cols]
     header_h = 54 * s
     card_h = header_h + max(col_rows) * row_h + pad
+    card_w, card_h = grow(card_w), grow(card_h)
     if portrait:
-        cx, cy = (W - card_w) / 2, H * 0.10
+        cx, cy = snap((W - card_w) / 2), snap(H * 0.10)
     else:
-        cx, cy = W - card_w - 48 * s, 48 * s
+        cx, cy = W - card_w - snap(48 * s), snap(48 * s)
 
     svg.rect(cx, cy, card_w, card_h, fill=BG100, stroke=LINE, r=6 * s, sw=max(1, s), opacity=0.94)
     svg.rect(cx, cy, 3 * s, card_h, fill=LAVENDER)
@@ -174,8 +188,8 @@ def main():
         (LAVENDER, f"kernel {platform.release()}"),
         (MINT, "λ ~/ > hack the machine"),
     ]
-    sy0 = cy + card_h + 22 * s
-    sc_h = 54 * s + len(sys_lines) * 26 * s + 40 * s
+    sy0 = cy + card_h + 2 * GRID
+    sc_h = grow(54 * s + len(sys_lines) * 26 * s + 40 * s)
     svg.rect(cx, sy0, card_w, sc_h, fill=BG100, stroke=LINE, r=6 * s, sw=max(1, s), opacity=0.94)
     svg.rect(cx, sy0, 3 * s, sc_h, fill=LILAC)
     svg.text(cx + pad, sy0 + 34 * s, "SYS // WHOAMI", 12 * s, LILAC, 700, spacing=1.6 * s)
@@ -221,6 +235,8 @@ def main():
     Path(out).with_suffix(".json").write_text(json.dumps({
         "size": [W, H], "scale": s, "portrait": portrait,
         "cards": [round(cx), round(cy), round(card_w), round(sy0 + sc_h - cy)],
+        "cheat": [cx, cy, card_w, card_h],
+        "whoami": [cx, sy0, card_w, sc_h],
         "banner": [round(bx), round(by - bf), round(bw), round(lh * len(BANNER) + bf)],
     }))
 
