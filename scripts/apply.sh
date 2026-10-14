@@ -261,9 +261,35 @@ rules=$(kread --file kwinrulesrc --group General --key rules)
 case ",$rules," in *",$R,"*) ;; *) rules=${rules:+$rules,}$R ;; esac
 kwrite --file kwinrulesrc --group General --key rules "$rules"
 kwrite --file kwinrulesrc --group General --key count "$(awk -F, '{print NF}' <<<"$rules")"
+
+# Tiling: Krohnkite (MIT), a dynamic tiler as a KWin script, fetched at a fixed release.
+# Every new window is tiled; dialogs, the hack menu and plasmashell float. Keys: section 7.
+KK_REV=0.9.9.2 KK_SHA=42f7f66531d366c74b5fc860381da3517ccb4cdccd1f80c122fcab6e9a8fcf7e
+kk_dir="$XDG_DATA_HOME/kwin/scripts/krohnkite"
+if ! grep -q "\"Version\": \"$KK_REV\"" "$kk_dir/metadata.json" 2>/dev/null; then
+  tmp=$(mktemp -d)
+  curl -fsSL -o "$tmp/krohnkite.kwinscript" \
+    "https://github.com/anametologin/krohnkite/releases/download/$KK_REV/krohnkite-${KK_REV}_1d7fd74.kwinscript" \
+    || die "could not download Krohnkite"
+  echo "$KK_SHA  $tmp/krohnkite.kwinscript" | sha256sum -c --quiet - || die "Krohnkite checksum mismatch"
+  python3 -I -m zipfile -e "$tmp/krohnkite.kwinscript" "$tmp/x"
+  rm -rf "$kk_dir"; mv "$tmp/x" "$kk_dir"; rm -rf "$tmp"
+fi
+K=Script-krohnkite
+for side in Left Right Top Bottom Between; do
+  kwrite --file kwinrc --group $K --key screenGap$side 8
+done
+kwrite --file kwinrc --group $K --key floatingTitle "hm-menu"
+kwrite --file kwinrc --group $K --key floatSkipPagerWindows true   # the hack menu, see hackmachine-menu
+kwrite --file kwinrc --group $K --key notificationDuration 600
+kwrite --file kwinrc --group Plugins --key krohnkiteEnabled true
+# arrow keys that cross to the next screen at the edge, see theme/kwin/hackmachine-tiling
+script_dir="$XDG_DATA_HOME/kwin/scripts/hackmachine-tiling"
+rm -rf "$script_dir"; cp -r "$REPO/theme/kwin/hackmachine-tiling" "$script_dir"
+kwrite --file kwinrc --group Plugins --key hackmachine-tilingEnabled true
 qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 \
   || gdbus call --session --dest org.kde.KWin --object-path /KWin --method org.kde.KWin.reconfigure >/dev/null
-ok "Hackmachine decoration: lavender focus ring, [_] [□] [x], hm-menu placement"
+ok "Hackmachine decoration: lavender focus ring, [_] [□] [x], hm-menu placement, Krohnkite tiling"
 
 # plasmashell only reads fonts and the icon theme at start-up, so restart it once, before the
 # wallpaper, taskbar and widgets go in: it saves widget positions with a delay, and a restart

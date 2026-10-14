@@ -8,7 +8,7 @@ src=${1:-$(ls -d "$HM_STATE"/backup-* 2>/dev/null | sort | head -1 || true)}
 [ -n "$src" ] && [ -d "$src" ] || die "no backup found in ${HM_STATE/#$HOME/\~}"
 step "restoring from ${src/#$HOME/\~}"
 
-python3 "$REPO/scripts/shortcuts.py" unbind || true
+python3 "$REPO/scripts/shortcuts.py" unbind "$REPO/config/shortcuts.conf" || true
 
 # kwinrulesrc / breezerc / btop.conf etc. that did not exist before get removed, the rest restored.
 for f in kdeglobals kwinrc kwinrulesrc plasmarc konsolerc kscreenlockerrc plasmashellrc \
@@ -55,7 +55,7 @@ source "$src/previous.env"
 changeicons=$(ls /usr/libexec/plasma-changeicons /usr/lib/*/libexec/plasma-changeicons 2>/dev/null | head -1 || true)
 [ -n "${icons:-}" ] && [ -n "$changeicons" ] && "$changeicons" "$icons" >/dev/null 2>&1 || true
 rm -f "$XDG_DATA_HOME/color-schemes/Hackmachine.colors"
-rm -rf "$XDG_DATA_HOME/kwin/scripts/hackmachine-menu" "$XDG_DATA_HOME/aurorae/themes/Hackmachine" \
+rm -rf "$XDG_DATA_HOME/kwin/scripts/hackmachine-menu" "$XDG_DATA_HOME/kwin/scripts/krohnkite" "$XDG_DATA_HOME/kwin/scripts/hackmachine-tiling" "$XDG_DATA_HOME/aurorae/themes/Hackmachine" \
        "$XDG_DATA_HOME/plasma/desktoptheme/hackmachine" "$XDG_DATA_HOME/icons/Hackmachine" \
        "$XDG_DATA_HOME"/plasma/plasmoids/org.hackmachine.{apps,clock,sys} \
        "$XDG_DATA_HOME/icons/Hackmachine-Breeze"

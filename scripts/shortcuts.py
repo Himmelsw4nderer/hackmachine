@@ -3,9 +3,11 @@
 
 Each row with a command becomes ~/.local/share/applications/hackmachine-<slug>.desktop
 plus a kglobalaccel "_launch" shortcut, registered live over D-Bus (and persisted by
-kglobalaccel in kglobalshortcutsrc), so no logout is needed.
+kglobalaccel in kglobalshortcutsrc), so no logout is needed. A command "kwin:Action[,Action…]"
+instead rebinds existing KWin actions (Krohnkite's among them); with several actions, the last
+part of the keys holds one key per action ("Meta+←↑→↓").
 
-usage: shortcuts.py bind CONF BIN_DIR | unbind | list CONF
+usage: shortcuts.py bind CONF BIN_DIR | unbind CONF | list CONF
 """
 import os
 import re
@@ -24,6 +26,21 @@ KEYS = {
     "left": 0x01000012, "up": 0x01000013, "right": 0x01000014, "down": 0x01000015,
     "pgup": 0x01000016, "pgdown": 0x01000017,
 }
+ARROWS = {"←": "Left", "↑": "Up", "→": "Right", "↓": "Down"}
+
+# KWin actions whose keys the tiling rows take over (or that clash with Plasma defaults:
+# Krohnkite's Meta+. / Meta+, / Meta+I / Meta+D), cleared on bind. Krohnkite's directional
+# actions stay key-less: the hackmachine-tiling script calls them. The KWin ones get their
+# defaults back on unbind.
+KWIN_FREE = [
+    "Window Quick Tile Left", "Window Quick Tile Right",
+    "Window Quick Tile Bottom", "Window Quick Tile Top",
+    "Switch Window Left", "Switch Window Up", "Switch Window Right", "Switch Window Down",
+    "Edit Tiles",
+    "KrohnkiteFocusNext", "KrohnkiteFocusPrev", "KrohnkiteIncrease", "KrohnkiteDecrease",
+    "KrohnkiteFocusLeft", "KrohnkiteFocusUp", "KrohnkiteFocusRight", "KrohnkiteFocusDown",
+    "KrohnkiteShiftLeft", "KrohnkiteShiftUp", "KrohnkiteShiftRight", "KrohnkiteShiftDown",
+]
 
 
 def parse(conf):
@@ -72,10 +89,53 @@ def action_id(desktop, label):
     return f"['{desktop}','_launch','{label}','{label}']"
 
 
+def kwin_id(action):
+    return f"['kwin','{action}','KWin','{action}']"
+
+
+def kwin_keys(row):
+    """'Meta+Alt+←↑→↓' + 'kwin:A,B,C,D' -> [(A, 'Meta+Alt+Left'), (B, 'Meta+Alt+Up'), …]."""
+    actions = row["cmd"][len("kwin:"):].split(",")
+    if len(actions) == 1:
+        return [(actions[0], row["keys"])]
+    mods, _, glyphs = row["keys"].rpartition("+")
+    glyphs = glyphs.replace(" ", "")
+    if len(glyphs) != len(actions):
+        raise ValueError(f"'{row['keys']}' has {len(glyphs)} keys for {len(actions)} actions")
+    return [(a, f"{mods}+{ARROWS.get(g, g)}") for a, g in zip(actions, glyphs)]
+
+
+def bind_kwin(rows):
+    for action in KWIN_FREE:
+        accel("setForeignShortcut", kwin_id(action), "@ai []")
+    for row in rows:
+        for action, keys in kwin_keys(row):
+            r = accel("setForeignShortcut", kwin_id(action), f"[{qt_key(keys)}]")
+            status = "bound" if r.returncode == 0 else f"FAILED ({r.stderr.strip()})"
+            print(f"  {keys:<18} {action:<16} {status}")
+
+
+def unbind_kwin(conf):
+    for action in KWIN_FREE:
+        if action.startswith(("Krohnkite", "Hackmachine")):
+            continue
+        r = accel("defaultShortcutKeys", kwin_id(action))
+        m = re.fullmatch(r"\((\[.*\]),\)", r.stdout.strip())
+        if r.returncode == 0 and m:
+            accel("setForeignShortcutKeys", kwin_id(action), m.group(1))
+    for row in parse(conf):
+        if row["cmd"].startswith("kwin:"):
+            for action, _ in kwin_keys(row):
+                accel("unregister", "kwin", action)
+
+
 def bind(conf, bin_dir):
     APPS.mkdir(parents=True, exist_ok=True)
-    for row in parse(conf):
-        if not row["cmd"]:
+    rows = parse(conf)
+    # KWin's rows first: they move Krohnkite off keys the launchers need (Meta+Return).
+    bind_kwin([r for r in rows if r["cmd"].startswith("kwin:")])
+    for row in rows:
+        if not row["cmd"] or row["cmd"].startswith("kwin:"):
             continue
         cmd = re.sub(r"(^|\s)(hm-[\w-]+)", lambda m: m.group(1) + str(Path(bin_dir) / m.group(2)), row["cmd"])
         desktop = f"{PREFIX}{slug(row['label'])}.desktop"
@@ -92,7 +152,8 @@ def bind(conf, bin_dir):
     subprocess.run(["kbuildsycoca6"], capture_output=True)
 
 
-def unbind():
+def unbind(conf):
+    unbind_kwin(conf)
     for f in sorted(APPS.glob(f"{PREFIX}*.desktop")):
         accel("unregister", f.name, "_launch")
         f.unlink()
@@ -125,7 +186,7 @@ if __name__ == "__main__":
     if cmd == "bind":
         bind(sys.argv[2], sys.argv[3])
     elif cmd == "unbind":
-        unbind()
+        unbind(sys.argv[2])
     elif cmd == "list":
         show(sys.argv[2])
     else:
