@@ -16,7 +16,8 @@ git clone https://github.com/Himmelsw4nderer/hackmachine.git && cd hackmachine
 ```
 
 Options (passed through to `scripts/apply.sh`): `--no-panel` keeps your panels, `--no-widgets` skips the desktop widgets, `--no-shell` leaves
-`~/.bashrc` alone, `--no-shortcuts` skips the key bindings, `--no-icons` keeps your icon theme.
+`~/.bashrc` alone, `--no-shortcuts` skips the key bindings, `--no-icons` keeps your icon theme,
+`--no-tiling` leaves out Krohnkite.
 
 ## What you get
 
@@ -27,6 +28,7 @@ Options (passed through to `scripts/apply.sh`): `--no-panel` keeps your panels, 
 | **Icons** | `Hackmachine`: the BeautyLine line-icon theme (fetched at a pinned commit, GPL-3) repainted so each icon is **one pastel chosen by category**. Media is pink, security coral, time and transfers peach, files butter, dev mint, chat teal, web sky, system lavender and session lilac. App icons are categorised from their `.desktop` Categories, others by name. The arrows (the tray's `^` too) are thin line chevrons instead of BeautyLine's filled ones. Underneath it, `Hackmachine-Breeze` repaints Breeze's small symbolic icons (tray, toolbars) the same way. |
 | **Fonts** | JetBrains Mono for every UI font, with bold window titles. The Nerd Font build is used if that's the one installed. VT323 is fetched for pixel headings. |
 | **Windows** | `Hackmachine` Aurorae decoration (generated SVG). Cocoa title bar with the title on the left and bracketed `[_] [□] [x]` buttons on the right; close turns coral on hover. Square corners; the active window gets a 1px lavender ring and inactive ones a hairline. Blur is on. |
+| **Tiling** | [Krohnkite](https://github.com/anametologin/krohnkite) (the Plasma 6 fork, fetched at a pinned release and checksum-checked) tiles windows dynamically with 12px gaps; the lavender focus ring stays. `Meta+←↑→↓` moves focus, `Meta+Alt+←↑→↓` moves the window, `Meta+Ctrl+H/J/K/L` resizes, `Meta+F` floats one window. The hack menu, KCalc, pavucontrol and Steam float. Plasma's quick-tile (`Meta+←↑→↓`), switch-window (`Meta+Alt+←↑→↓`) and tile-editor (`Meta+T`) keys give way and come back with `uninstall.sh`. Krohnkite's own defaults (`Meta+Return`, `Meta+L`, `Meta+D` …) are all replaced by the bindings in `config/shortcuts.conf`. |
 | **Taskbar** | One floating bar along the bottom of the primary screen that **auto-hides**: push the mouse against the bottom edge anywhere to bring it back. Left: the filled rainbow hexagon-λ start button (set apart from the single-pastel line icons of the apps) and pinned apps. Centre: a colourful clock (a big rainbow `16:34` as tall as the app icons, with `fri 09.10` over `wk41 :47` beside it; click for a calendar). Right: the tray, its icons scaled to the same size as the apps. It's one bar rather than separate islands because Plasma only reveals an auto-hidden panel from the stretch of screen edge right under it. |
 | **Desktop widgets** | Three custom Plasma widgets are placed on **every connected screen**, in the space the wallpaper leaves free. Everything sits on Plasma's 16px widget grid, and the wallpaper's cards are snapped to the same grid, so the widget frames line up exactly with the cheat-sheet and whoami cards, with the same 32px gaps. On landscape screens: clock and apps level with the cheat-sheet, the system card below them from the whoami card's top to above the banner. On portrait screens: stacked between the cards and the banner, as wide as the cards. `TIME // LOCAL` is a big clock drawn with `#` in monospace, one pastel per digit, with date, ISO week and day of month. `SYS // LIVE` shows CPU/GPU/RAM/disk as `[████░░]` bars with temperatures, network up/down as sparklines, and uptime. `APPS // PINNED` has numbered app tiles that scale with the card; its footer opens the hack menu. |
 | **Tray** | Only network, sound, microphone and battery stay visible. Everything else, Plasma's own entries and app icons alike, goes into the `^` popup. `hm-tray` runs at login and hides tray icons from apps that start later. Each entry is hidden only the first time it appears, so anything you set to "Always shown" stays. Edit `SHOW` in `bin/hm-tray` to change the list. |
@@ -49,7 +51,9 @@ Obsidian, Kate, System Monitor), so the card is always full. Edit it and run `./
 
 `config/shortcuts.conf` is the **single source** for the key bindings *and* the wallpaper
 cheat-sheet. A row with a command gets bound as a global shortcut, live over D-Bus, with no
-logout needed. A row without one is a Plasma default and only shows on the wallpaper. Edit it,
+logout needed. A `kwin:Action,…` command binds KWin's own actions instead (the tiling keys; one
+row with `Meta+←↑→↓` binds four actions). A row without a command is a Plasma default and only
+shows on the wallpaper. The `!free` line names Plasma defaults the rice's keys replace. Edit it,
 then re-run `./install.sh --no-deps`.
 
 | keys | does |
@@ -60,6 +64,15 @@ then re-run `./install.sh --no-deps`.
 | `Meta+B` | browser |
 | `Meta+Shift+Return` | btop |
 | `Meta+Alt+V` | cava |
+| `Meta+←↑→↓` | focus the window in that direction |
+| `Meta+Alt+←↑→↓` | move the window in that direction |
+| `Meta+Ctrl+H` / `L` | narrower / wider |
+| `Meta+Ctrl+J` / `K` | taller / shorter |
+| `Meta+F` / `Meta+Shift+F` | float or tile this window / all windows |
+| `Meta+Ctrl+Return` | make this the master window |
+| `Meta+[` / `Meta+]` | fewer / more master windows |
+| `Meta+T` / `Meta+M` / `Meta+\` | tile layout / monocle layout / next layout |
+| `Meta+R` | rotate the layout |
 
 ## Multi-monitor and rotation
 
@@ -90,6 +103,7 @@ bin/hm-menu, hm-keys    the launcher and the cheat-sheet viewer (installed to ~/
 bin/hm-tray             keeps the tray minimal (autostarted)
 bin/hm-brave            loads the Brave theme
 theme/                  colour schemes, Konsole, fastfetch, btop, cava, Zed, icon, shell, KWin script
+                        (Krohnkite itself is downloaded by apply.sh; version + checksum in scripts/lib.sh)
 ```
 
 ## Palette

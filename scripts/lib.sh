@@ -31,8 +31,22 @@ distro_family() {
   esac
 }
 
+# Krohnkite, the KWin tiling script (Plasma 6 fork), pinned to a release.
+KK_VER=0.9.9.2
+KK_URL="https://github.com/anametologin/krohnkite/releases/download/$KK_VER/krohnkite-${KK_VER}_1d7fd74.kwinscript"
+KK_SHA256=42f7f66531d366c74b5fc860381da3517ccb4cdccd1f80c122fcab6e9a8fcf7e
+
 kwrite() { kwriteconfig6 "$@" 2>/dev/null || kwriteconfig5 "$@"; }
 kread()  { kreadconfig6 "$@" 2>/dev/null || kreadconfig5 "$@"; }
+
+# (Re)load a KWin script after its files or its [Plugins] entry changed: unload it, then let
+# reconfigure load whatever is enabled.
+kwin_reload_script() {
+  gdbus call --session --dest org.kde.KWin --object-path /Scripting \
+    --method org.kde.kwin.Scripting.unloadScript "$1" >/dev/null 2>&1 || true
+  gdbus call --session --dest org.kde.KWin --object-path /KWin --method org.kde.KWin.reconfigure >/dev/null
+  gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1 || true
+}
 
 plasma_eval() {
   local js=$1

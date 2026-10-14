@@ -59,6 +59,12 @@ rm -rf "$XDG_DATA_HOME/kwin/scripts/hackmachine-menu" "$XDG_DATA_HOME/aurorae/th
        "$XDG_DATA_HOME/plasma/desktoptheme/hackmachine" "$XDG_DATA_HOME/icons/Hackmachine" \
        "$XDG_DATA_HOME"/plasma/plasmoids/org.hackmachine.{apps,clock,sys} \
        "$XDG_DATA_HOME/icons/Hackmachine-Breeze"
+gdbus call --session --dest org.kde.KWin --object-path /Scripting \
+  --method org.kde.kwin.Scripting.unloadScript krohnkite >/dev/null 2>&1 || true
+if [ -f "$HM_STATE/krohnkite-installed-by-hackmachine" ]; then
+  kpackagetool6 --type KWin/Script --remove krohnkite >/dev/null 2>&1 || true
+  rm -f "$HM_STATE/krohnkite-installed-by-hackmachine"
+fi
 qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 || true
 
 # The panel layout lives in plasmashell's own config: restart it to load the restored file.

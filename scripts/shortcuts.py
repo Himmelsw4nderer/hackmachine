@@ -5,8 +5,14 @@ Each row with a command becomes ~/.local/share/applications/hackmachine-<slug>.d
 plus a kglobalaccel "_launch" shortcut, registered live over D-Bus (and persisted by
 kglobalaccel in kglobalshortcutsrc), so no logout is needed.
 
+A command "kwin:ActionA,ActionB" binds existing KWin actions (Krohnkite's, for one) instead.
+With several actions the keys split up: "Meta+←↑→↓" is Left, Up, Right, Down and
+"Meta+Ctrl+H/L" is H, L. Every Krohnkite action not listed is unbound, as are the KWin actions
+on "!free" lines; the previous keys are saved so unbind can put them back.
+
 usage: shortcuts.py bind CONF BIN_DIR | unbind | list CONF
 """
+import json
 import os
 import re
 import subprocess
@@ -15,6 +21,9 @@ from pathlib import Path
 
 APPS = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "applications"
 PREFIX = "hackmachine-"
+STATE = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "hackmachine"
+KWIN_SAVED = STATE / "kwin-shortcuts.json"
+ARROWS = {"←": "Left", "↑": "Up", "→": "Right", "↓": "Down"}
 
 MODS = {"meta": 0x10000000, "alt": 0x08000000, "ctrl": 0x04000000, "shift": 0x02000000}
 KEYS = {
@@ -29,13 +38,19 @@ KEYS = {
 def parse(conf):
     rows = []
     for line in Path(conf).read_text().splitlines():
-        if not line.strip() or line.lstrip().startswith("#"):
+        if not line.strip() or line.lstrip().startswith(("#", "!")):
             continue
         parts = [p.strip() for p in line.split("|")]
         parts += [""] * (4 - len(parts))
         group, keys, label, cmd = parts[:4]
         rows.append({"group": group, "keys": keys, "label": label, "cmd": cmd})
     return rows
+
+
+def freed(conf):
+    """KWin actions named on '!free |' lines: Plasma defaults the rice's keys replace."""
+    return [a.strip() for line in Path(conf).read_text().splitlines()
+            if line.startswith("!free") for a in line.split("|", 1)[1].split(",") if a.strip()]
 
 
 def qt_key(seq):
@@ -50,7 +65,7 @@ def qt_key(seq):
         code |= KEYS[k]
     elif re.fullmatch(r"f([1-9]|[12][0-9]|3[0-5])", k):
         code |= 0x01000030 + int(k[1:]) - 1
-    elif len(key) == 1:
+    elif len(key) == 1:  # letters, digits and ASCII punctuation are their own Qt key codes
         code |= ord(key.upper())
     else:
         raise ValueError(f"unknown key '{key}' in '{seq}'")
@@ -72,10 +87,76 @@ def action_id(desktop, label):
     return f"['{desktop}','_launch','{label}','{label}']"
 
 
+def split_keys(seq, n):
+    """'Meta+←↑→↓' -> 4 keys, 'Meta+Ctrl+H/L' -> 2 keys; a single action keeps the sequence."""
+    if n == 1:
+        return [seq]
+    mods, _, last = seq.rpartition("+")
+    keys = [ARROWS[c] for c in last] if all(c in ARROWS for c in last) else last.split("/")
+    if len(keys) != n:
+        raise ValueError(f"'{seq}' gives {len(keys)} keys for {n} actions")
+    return [f"{mods}+{k}" if mods else k for k in keys]
+
+
+def kwin_id(action):
+    return f"['kwin','{action}','KWin','']"
+
+
+def kwin_keys(action):
+    r = accel("shortcut", kwin_id(action))
+    return [int(x) for x in re.findall(r"-?\d+", r.stdout)] if r.returncode == 0 else []
+
+
+def kwin_set(action, keys):
+    return accel("setForeignShortcut", kwin_id(action), f"@ai {keys}")
+
+
+def bind_kwin(conf, rows):
+    actions = [a for r in rows for a in r["cmd"][5:].split(",")]
+    present = accel("allActionsForComponent", "['kwin']").stdout
+    missing = [a for a in actions if f"'{a}'" not in present]
+    if missing:
+        print(f"  KWin actions not loaded, skipped: {', '.join(missing)}")
+        return
+    saved = json.loads(KWIN_SAVED.read_text()) if KWIN_SAVED.exists() else {}
+    # Krohnkite's own defaults (Meta+Return, Meta+L, Meta+D …) would shadow the rice's keys, so
+    # every Krohnkite action starts unbound, along with the Plasma defaults listed in "!free".
+    krohnkite = sorted(set(re.findall(r"'(Krohnkite\w+)'", present)))
+    for a in krohnkite + freed(conf):
+        if a not in saved:
+            saved[a] = kwin_keys(a)
+        kwin_set(a, [])
+    for row in rows:
+        acts = row["cmd"][5:].split(",")
+        ok = True
+        for key, act in zip(split_keys(row["keys"], len(acts)), acts):
+            if act not in saved:
+                saved[act] = kwin_keys(act)
+            ok &= kwin_set(act, [qt_key(key)]).returncode == 0
+        print(f"  {row['keys']:<18} {row['label']:<16} {'bound' if ok else 'FAILED'}")
+    STATE.mkdir(parents=True, exist_ok=True)
+    KWIN_SAVED.write_text(json.dumps(saved, indent=1))
+
+
+def unbind_kwin():
+    if not KWIN_SAVED.exists():
+        return
+    saved = json.loads(KWIN_SAVED.read_text())
+    for a in saved:  # free everything first, then hand the keys back
+        kwin_set(a, [])
+    for a, keys in saved.items():
+        if keys:
+            kwin_set(a, keys)
+    KWIN_SAVED.unlink()
+    print(f"  restored {len(saved)} KWin shortcuts")
+
+
 def bind(conf, bin_dir):
     APPS.mkdir(parents=True, exist_ok=True)
-    for row in parse(conf):
-        if not row["cmd"]:
+    rows = parse(conf)
+    bind_kwin(conf, [r for r in rows if r["cmd"].startswith("kwin:")])
+    for row in rows:
+        if not row["cmd"] or row["cmd"].startswith("kwin:"):
             continue
         cmd = re.sub(r"(^|\s)(hm-[\w-]+)", lambda m: m.group(1) + str(Path(bin_dir) / m.group(2)), row["cmd"])
         desktop = f"{PREFIX}{slug(row['label'])}.desktop"
@@ -93,6 +174,7 @@ def bind(conf, bin_dir):
 
 
 def unbind():
+    unbind_kwin()
     for f in sorted(APPS.glob(f"{PREFIX}*.desktop")):
         accel("unregister", f.name, "_launch")
         f.unlink()
@@ -101,7 +183,7 @@ def unbind():
 
 
 COLORS = {"apps": (166, 230, 191), "session": (226, 181, 240), "windows": (163, 205, 245),
-          "desktop": (196, 178, 245), "tools": (249, 196, 154)}
+          "tiling": (148, 220, 214), "desktop": (196, 178, 245), "tools": (249, 196, 154)}
 
 
 def show(conf):

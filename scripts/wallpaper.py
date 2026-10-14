@@ -22,7 +22,7 @@ BG000, BG100, BG200, BG300 = "#1a1614", "#221d1a", "#2a2420", "#372f2a"
 LINE, INK, MUTED, FAINT = "#4a3f38", "#f6ece4", "#bfae9f", "#7d6d62"
 HUES = ["#f5a8c9", "#f7a59a", "#f9c49a", "#f2e29b", "#a6e6bf", "#94dcd6", "#a3cdf5", "#c4b2f5", "#e2b5f0"]
 PINK, CORAL, PEACH, BUTTER, MINT, TEAL, SKY, LAVENDER, LILAC = HUES
-GROUP_HUE = {"apps": MINT, "session": LILAC, "windows": SKY, "desktop": LAVENDER, "tools": PEACH}
+GROUP_HUE = {"apps": MINT, "session": LILAC, "windows": SKY, "tiling": TEAL, "desktop": LAVENDER, "tools": PEACH}
 
 BANNER = """\
 ██╗  ██╗ █████╗  ██████╗██╗  ██╗███╗   ███╗ █████╗  ██████╗██╗  ██╗██╗███╗   ██╗███████╗

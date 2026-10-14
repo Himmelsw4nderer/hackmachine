@@ -3,15 +3,16 @@
 # Everything it overwrites is copied to ~/.local/state/hackmachine/backup-<time>/ first;
 # uninstall.sh puts the oldest backup (your pre-Hackmachine setup) back.
 #
-# usage: apply.sh [--no-panel] [--no-shell] [--no-shortcuts] [--no-icons] [--no-widgets]
+# usage: apply.sh [--no-panel] [--no-shell] [--no-shortcuts] [--no-icons] [--no-widgets] [--no-tiling]
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
-DO_PANEL=1 DO_SHELL=1 DO_KEYS=1 DO_ICONS=1 DO_WIDGETS=1
+DO_PANEL=1 DO_SHELL=1 DO_KEYS=1 DO_ICONS=1 DO_WIDGETS=1 DO_TILING=1
 for a in "$@"; do
   case "$a" in
     --no-panel) DO_PANEL=0 ;; --no-shell) DO_SHELL=0 ;;
     --no-shortcuts) DO_KEYS=0 ;; --no-icons) DO_ICONS=0 ;; --no-widgets) DO_WIDGETS=0 ;;
+    --no-tiling) DO_TILING=0 ;;
     -h|--help) sed -n '2,6p' "$0"; exit 0 ;;
     *) die "unknown option $a" ;;
   esac
@@ -250,6 +251,8 @@ kwrite --file kwinrulesrc --group $R --key above true
 kwrite --file kwinrulesrc --group $R --key aboverule 2
 kwrite --file kwinrulesrc --group $R --key skiptaskbar true
 kwrite --file kwinrulesrc --group $R --key skiptaskbarrule 2
+kwrite --file kwinrulesrc --group $R --key skippager true   # Krohnkite floats skip-pager windows
+kwrite --file kwinrulesrc --group $R --key skippagerrule 2
 for k in size sizerule placement placementrule position positionrule; do   # placed by the KWin script
   kwrite --file kwinrulesrc --group $R --key $k --delete 2>/dev/null || true
 done
@@ -261,9 +264,42 @@ rules=$(kread --file kwinrulesrc --group General --key rules)
 case ",$rules," in *",$R,"*) ;; *) rules=${rules:+$rules,}$R ;; esac
 kwrite --file kwinrulesrc --group General --key rules "$rules"
 kwrite --file kwinrulesrc --group General --key count "$(awk -F, '{print NF}' <<<"$rules")"
-qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 \
-  || gdbus call --session --dest org.kde.KWin --object-path /KWin --method org.kde.KWin.reconfigure >/dev/null
+kwin_reload_script hackmachine-menu
 ok "Hackmachine decoration: lavender focus ring, [_] [□] [x], hm-menu placement"
+
+# ── 4b · tiling: Krohnkite ──────────────────────────────────────────────────
+if [ "$DO_TILING" = 1 ]; then
+  step "tiling: Krohnkite $KK_VER"
+  # Fetched at a pinned release and checked, not vendored (MIT, github.com/anametologin/krohnkite).
+  kk_src="$HM_STATE/src/krohnkite-$KK_VER.kwinscript"
+  if [ ! -f "$kk_src" ]; then
+    mkdir -p "$HM_STATE/src"
+    curl -fsSL "$KK_URL" -o "$kk_src.part" || die "could not download Krohnkite"
+    echo "$KK_SHA256  $kk_src.part" | sha256sum -c --quiet - || { rm -f "$kk_src.part"; die "Krohnkite download has the wrong checksum"; }
+    mv "$kk_src.part" "$kk_src"
+  fi
+  if [ ! -d "$XDG_DATA_HOME/kwin/scripts/krohnkite" ]; then
+    kpackagetool6 --type KWin/Script --install "$kk_src" >/dev/null && touch "$HM_STATE/krohnkite-installed-by-hackmachine"
+  else
+    kpackagetool6 --type KWin/Script --upgrade "$kk_src" >/dev/null
+  fi
+  K="Script-krohnkite"
+  for side in Left Right Top Bottom Between; do kwrite --file kwinrc --group $K --key screenGap$side 12; done
+  kwrite --file kwinrc --group $K --key noTileBorder false              # keep the lavender focus ring
+  kwrite --file kwinrc --group $K --key floatSkipPagerWindows true      # hm-menu marks itself skip-pager
+  kwrite --file kwinrc --group $K --key floatingTitle "hm-menu"
+  kwrite --file kwinrc --group $K --key floatingClass "org.kde.kcalc,kcalc,org.pulseaudio.pavucontrol,pavucontrol,steam"
+  kwrite --file kwinrc --group $K --key tileLayoutInitialRotationAngle 0
+  kwrite --file kwinrc --group Plugins --key krohnkiteEnabled true
+  kwin_reload_script krohnkite
+  # Its shortcuts only exist once KWin has loaded the script; the shortcut step binds them.
+  for _ in $(seq 20); do
+    gdbus call --session --dest org.kde.kglobalaccel --object-path /kglobalaccel \
+      --method org.kde.KGlobalAccel.allActionsForComponent "['kwin']" 2>/dev/null | grep -q KrohnkiteFocusLeft && break
+    sleep 0.5
+  done
+  ok "dynamic tiling with 12px gaps; Meta+←↑→↓ focuses, Meta+Alt+←↑→↓ moves (bound below)"
+fi
 
 # plasmashell only reads fonts and the icon theme at start-up, so restart it once, before the
 # wallpaper, taskbar and widgets go in: it saves widget positions with a delay, and a restart
