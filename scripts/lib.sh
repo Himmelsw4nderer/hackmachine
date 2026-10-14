@@ -48,6 +48,25 @@ kwin_reload_script() {
   gdbus call --session --dest org.kde.KWin --object-path /Scripting --method org.kde.kwin.Scripting.start >/dev/null 2>&1 || true
 }
 
+# A QML script (Krohnkite): KWin keeps its QML and JS in memory per file name for the whole
+# session, so a reload by name runs the old code. Load fresh copies of main.qml and
+# code/script.js under new names instead; the next login loads the real files as usual.
+kwin_reload_qml_script() {  # plugin-id
+  local c="$XDG_DATA_HOME/kwin/scripts/$1/contents" s id
+  s="live-$(date +%s%N)"
+  rm -f "$c"/ui/hm-live-*.qml "$c"/code/hm-live-*.js
+  cp "$c/code/script.js" "$c/code/hm-$s.js"
+  sed "s|\"../code/script.js\"|\"../code/hm-$s.js\"|" "$c/ui/main.qml" > "$c/ui/hm-$s.qml"
+  gdbus call --session --dest org.kde.KWin --object-path /Scripting \
+    --method org.kde.kwin.Scripting.unloadScript "$1" >/dev/null 2>&1 || true
+  gdbus call --session --dest org.kde.KWin --object-path /KWin --method org.kde.KWin.reconfigure >/dev/null
+  id=$(gdbus call --session --dest org.kde.KWin --object-path /Scripting \
+    --method org.kde.kwin.Scripting.loadDeclarativeScript "$c/ui/hm-$s.qml" "$1" | grep -o -- '-\?[0-9]\+' | head -1)
+  [ "${id:--1}" -ge 0 ] || return 1
+  gdbus call --session --dest org.kde.KWin --object-path "/Scripting/Script$id" \
+    --method org.kde.kwin.Script.run >/dev/null
+}
+
 plasma_eval() {
   local js=$1
   if have qdbus6; then qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$js"

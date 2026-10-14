@@ -283,22 +283,25 @@ if [ "$DO_TILING" = 1 ]; then
   else
     kpackagetool6 --type KWin/Script --upgrade "$kk_src" >/dev/null
   fi
+  # Portrait-aware tile layout, focus and move across screens (see the script's docstring).
+  python3 "$REPO/scripts/krohnkite_patch.py" "$XDG_DATA_HOME/kwin/scripts/krohnkite/contents/code/script.js" \
+    || die "could not patch Krohnkite"
   K="Script-krohnkite"
   for side in Left Right Top Bottom Between; do kwrite --file kwinrc --group $K --key screenGap$side 12; done
   kwrite --file kwinrc --group $K --key noTileBorder false              # keep the lavender focus ring
   kwrite --file kwinrc --group $K --key floatSkipPagerWindows true      # hm-menu marks itself skip-pager
   kwrite --file kwinrc --group $K --key floatingTitle "hm-menu"
-  kwrite --file kwinrc --group $K --key floatingClass "org.kde.kcalc,kcalc,org.pulseaudio.pavucontrol,pavucontrol,steam"
+  kwrite --file kwinrc --group $K --key floatingClass "org.kde.kcalc,kcalc,org.pulseaudio.pavucontrol,pavucontrol"
   kwrite --file kwinrc --group $K --key tileLayoutInitialRotationAngle 0
   kwrite --file kwinrc --group Plugins --key krohnkiteEnabled true
-  kwin_reload_script krohnkite
+  kwin_reload_qml_script krohnkite || die "KWin did not load Krohnkite"
   # Its shortcuts only exist once KWin has loaded the script; the shortcut step binds them.
   for _ in $(seq 20); do
     gdbus call --session --dest org.kde.kglobalaccel --object-path /kglobalaccel \
       --method org.kde.KGlobalAccel.allActionsForComponent "['kwin']" 2>/dev/null | grep -q KrohnkiteFocusLeft && break
     sleep 0.5
   done
-  ok "dynamic tiling with 12px gaps; Meta+←↑→↓ focuses, Meta+Alt+←↑→↓ moves (bound below)"
+  ok "dynamic tiling with 12px gaps; Meta+←↑→↓ focuses, Meta+Alt+←↑→↓ moves, both across screens (bound below)"
 fi
 
 # plasmashell only reads fonts and the icon theme at start-up, so restart it once, before the
