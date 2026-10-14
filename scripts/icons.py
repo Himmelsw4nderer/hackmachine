@@ -134,7 +134,9 @@ def desktop_categories():
             cs = set(cats.group(1).strip().split(";"))
             for hue, wanted in CATEGORIES:
                 if cs & wanted:
-                    icon_hue.setdefault(Path(icon.group(1).strip()).stem.lower(), hue)
+                    # .name + suffix strip, not .stem: "dev.zed.Zed" has no extension to drop
+                    name = re.sub(r"\.(svg|png|xpm)$", "", Path(icon.group(1).strip()).name.lower())
+                    icon_hue.setdefault(name, hue)
                     break
     return icon_hue
 
@@ -193,6 +195,11 @@ def main():
     shutil.copytree(src, dest, symlinks=True,
                     ignore=shutil.ignore_patterns(".git", "*.png", "icon-theme.cache", "README*"))
     app_hue = desktop_categories()
+    # .desktop files often name an alias (dev.zed.Zed.svg → zed.svg), so look the hue up by those too
+    aliases = {}
+    for path in dest.rglob("*.svg"):
+        if path.is_symlink() and path.exists():
+            aliases.setdefault(path.resolve(), []).append(path.stem.lower().removesuffix("-symbolic"))
     counts = {}
     for path in dest.rglob("*.svg"):
         if path.is_symlink() or not path.is_file():
@@ -204,7 +211,9 @@ def main():
             path.unlink()
             continue
         stem = path.stem.lower().removesuffix("-symbolic")
-        hue = (app_hue.get(stem) if ctx == "apps" else None) or by_name(stem) \
+        names = [stem, *aliases.get(path.resolve(), [])]
+        hue = (next((app_hue[n] for n in names if n in app_hue), None) if ctx == "apps" else None) \
+            or by_name(stem) \
             or DEFAULTS.get(ctx or "", "lavender")
         counts[hue] = counts.get(hue, 0) + 1
         try:
