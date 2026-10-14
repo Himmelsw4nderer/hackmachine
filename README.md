@@ -6,7 +6,8 @@ Built from the *Hackmachine* design system.
 
 One repo, any machine: clone it and run `./install.sh`. Tested on Fedora/Nobara 44 with Plasma 6.6,
 Wayland and two monitors (one rotated 90°). The scripts also handle Ubuntu/Kubuntu, Debian, Arch
-and openSUSE.
+and openSUSE. `qdbus6` isn't needed: the scripts use it when it's installed and otherwise talk to
+Plasma through `gdbus`, which every Plasma system has.
 
 ```bash
 git clone https://github.com/Himmelsw4nderer/hackmachine.git && cd hackmachine
