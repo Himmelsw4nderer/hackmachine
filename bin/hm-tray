@@ -12,7 +12,16 @@ SHOW=(org.kde.plasma.networkmanagement org.kde.plasma.volume plasmashell_microph
 
 eval_js() {
   if command -v qdbus6 >/dev/null; then qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$1"
-  else qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$1"; fi
+  elif command -v qdbus >/dev/null; then qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$1"
+  else
+    # gdbus parses its arguments as GVariant text: pass the script as a quoted string literal
+    local out
+    out=$(gdbus call --session --dest org.kde.plasmashell --object-path /PlasmaShell \
+            --method org.kde.PlasmaShell.evaluateScript \
+            "$(python3 -c 'import json,sys; print(json.dumps(sys.argv[1], ensure_ascii=False))' "$1")") || return 1
+    [ -n "$out" ] || return 1
+    python3 -c 'import ast,sys; print(ast.literal_eval(sys.argv[1])[0], end="")' "$out"
+  fi
 }
 
 # Ids of the app tray icons that are registered right now.

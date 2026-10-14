@@ -65,7 +65,7 @@ if [ -f "$HM_STATE/krohnkite-installed-by-hackmachine" ]; then
   kpackagetool6 --type KWin/Script --remove krohnkite >/dev/null 2>&1 || true
   rm -f "$HM_STATE/krohnkite-installed-by-hackmachine"
 fi
-qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 || true
+gdbus call --session --dest org.kde.KWin --object-path /KWin --method org.kde.KWin.reconfigure >/dev/null 2>&1 || true
 
 # The panel layout lives in plasmashell's own config: restart it to load the restored file.
 kquitapp6 plasmashell >/dev/null 2>&1 || true

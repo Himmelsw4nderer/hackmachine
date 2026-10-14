@@ -96,7 +96,9 @@ pick=$(list_apps | fzf --ansi --prompt='λ ~/ > ' --delimiter=$'\t' --with-nth=1
 
 case "$pick" in
   @lock)     loginctl lock-session ;;
-  @logout)   qdbus org.kde.LogoutPrompt /LogoutPrompt promptLogout 2>/dev/null || loginctl terminate-session "${XDG_SESSION_ID:-}" ;;
+  @logout)   gdbus call --session --dest org.kde.LogoutPrompt --object-path /LogoutPrompt \
+               --method org.kde.LogoutPrompt.promptLogout >/dev/null 2>&1 \
+               || loginctl terminate-session "${XDG_SESSION_ID:-}" ;;
   @reboot)   systemctl reboot ;;
   @poweroff) systemctl poweroff ;;
   @keys)     setsid -f "$(dirname "$0")/hm-keys" --window >/dev/null 2>&1 ;;
