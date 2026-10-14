@@ -6,6 +6,7 @@ usage: wallpaper.py CONF OUT.svg WIDTHxHEIGHT "Font Family" [panel_height] [--no
 
 Also writes OUT.json with the boxes of the cards and the banner.
 """
+import itertools
 import json
 import math
 import os
@@ -81,19 +82,16 @@ class Svg:
                 f'viewBox="0 0 {self.w} {self.h}">\n' + "\n".join(self.out) + "\n</svg>\n")
 
 
-def split_columns(groups, n=2):
-    """Greedy split of ordered groups into n columns of roughly equal rows (order kept)."""
-    sizes = [len(g[1]) + 2 for g in groups]
-    target = sum(sizes) / n
-    cols, cur, acc = [], [], 0
-    for g, sz in zip(groups, sizes):
-        if cur and acc + sz / 2 > target and len(cols) < n - 1:
-            cols.append(cur)
-            cur, acc = [], 0
-        cur.append(g)
-        acc += sz
-    cols.append(cur)
-    return cols
+def split_columns(groups, n):
+    """Split ordered groups into n columns (order kept) so the tallest column is as short as possible."""
+    sizes = [len(g[1]) + 1.6 for g in groups]
+    best = None
+    for cuts in itertools.combinations(range(1, len(groups)), n - 1):
+        bounds = (0, *cuts, len(groups))
+        tallest = max(sum(sizes[a:b]) for a, b in zip(bounds, bounds[1:]))
+        if best is None or tallest < best[0]:
+            best = (tallest, [groups[a:b] for a, b in zip(bounds, bounds[1:])])
+    return best[1]
 
 
 # Plasma snaps desktop widgets to a 16px grid, so the cards sit on it too and widgets can line up with them.
@@ -134,7 +132,6 @@ def main():
         if not groups or groups[-1][0] != r["group"]:
             groups.append((r["group"], []))
         groups[-1][1].append(r)
-    cols = split_columns(groups)
 
     body = 15 * s
     row_h = 27 * s
@@ -143,11 +140,15 @@ def main():
     label_w = max(len(r["label"]) for r in rows) * body * ADV
     col_w = key_w + 14 * s + label_w + 24 * s
     col_gap = 36 * s
-    card_w = pad * 2 + col_w * len(cols) + col_gap * (len(cols) - 1)
-    col_rows = [sum(len(g[1]) + 1.6 for g in col) for col in cols]
     header_h = 54 * s
-    card_h = header_h + max(col_rows) * row_h + pad
-    card_w, card_h = grow(card_w), grow(card_h)
+    # three columns keep the card short, so the widgets beside it are not stretched;
+    # two when three would take more than about half of the screen's width
+    for n in (3, 2):
+        cols = split_columns(groups, min(n, len(groups)))
+        card_w = grow(pad * 2 + col_w * len(cols) + col_gap * (len(cols) - 1))
+        if card_w <= W * (0.9 if portrait else 0.55):
+            break
+    card_h = grow(header_h + max(sum(len(g[1]) + 1.6 for g in col) for col in cols) * row_h + pad)
     if portrait:
         cx, cy = snap((W - card_w) / 2), snap(H * 0.10)
     else:

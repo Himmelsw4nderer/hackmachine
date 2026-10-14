@@ -29,13 +29,15 @@ KEYS = {
 ARROWS = {"←": "Left", "↑": "Up", "→": "Right", "↓": "Down"}
 
 # KWin actions whose keys the tiling rows take over (or that clash with Plasma defaults:
-# Krohnkite's Meta+. / Meta+, / Meta+I / Meta+D), cleared on bind. Krohnkite's directional
+# Krohnkite's Meta+. / Meta+, / Meta+I / Meta+D), cleared on bind. Meta+Alt+arrows already cross
+# screens, so KWin's Meta+Shift+←/→ (window to next/previous screen) make way for resizing. Krohnkite's directional
 # actions stay key-less: the hackmachine-tiling script calls them. The KWin ones get their
 # defaults back on unbind.
 KWIN_FREE = [
     "Window Quick Tile Left", "Window Quick Tile Right",
     "Window Quick Tile Bottom", "Window Quick Tile Top",
     "Switch Window Left", "Switch Window Up", "Switch Window Right", "Switch Window Down",
+    "Window to Next Screen", "Window to Previous Screen",
     "Edit Tiles",
     "KrohnkiteFocusNext", "KrohnkiteFocusPrev", "KrohnkiteIncrease", "KrohnkiteDecrease",
     "KrohnkiteFocusLeft", "KrohnkiteFocusUp", "KrohnkiteFocusRight", "KrohnkiteFocusDown",
