@@ -1,4 +1,4 @@
-// Hackmachine taskbar: one floating, auto-hiding bar along the bottom of the primary screen.
+// Nook taskbar: one floating, auto-hiding bar along the bottom of the primary screen.
 //   left   λ start button + pinned/running apps
 //   centre clock (two flexible spacers keep it centred on the screen)
 //   right  tray
@@ -20,7 +20,7 @@ bar.hiding = "autohide";   // slides away; push the mouse to the bottom edge to 
 // ── left: start + apps ──
 var kickoff = bar.addWidget("org.kde.plasma.kickoff");
 kickoff.currentConfigGroup = ["General"];
-kickoff.writeConfig("icon", "hackmachine-start");  // filled, so it reads as the start button
+kickoff.writeConfig("icon", "nook-start");  // filled, so it reads as the start button
 kickoff.writeConfig("menuLabel", "");
 kickoff.writeConfig("favoritesDisplay", 1); // list, not grid
 kickoff.writeConfig("applicationsDisplay", 1);
@@ -35,9 +35,9 @@ tasks.writeConfig("indicateAudioStreams", true);
 tasks.writeConfig("iconSpacing", 1);
 tasks.writeConfig("fill", false);
 
-// ── centre: clock (the Hackmachine clock in its compact, colourful panel form) ──
+// ── centre: clock (the Nook clock in its compact, colourful panel form) ──
 bar.addWidget("org.kde.plasma.panelspacer");
-bar.addWidget("org.hackmachine.clock");
+bar.addWidget("org.nook.clock");
 bar.addWidget("org.kde.plasma.panelspacer");
 
 // ── right: tray ──

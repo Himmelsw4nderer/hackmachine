@@ -1,23 +1,43 @@
-// ~/.config/fastfetch/config.jsonc — Hackmachine
-// Logo colours are terminal palette names, so the Konsole scheme turns them pastel.
+// ~/.config/fastfetch/config.jsonc — Nook
+// A steaming mug beside eleven lines, no taller than the logo: system (mint), desktop (lavender), hardware (peach) keys.
+// Colours are 24-bit escape codes in the palette; bars look like the SYS // LIVE desktop widget.
 {
   "logo": {
-    "source": "~/.config/fastfetch/candy-logo.txt",
-    "color": { "1": "magenta", "2": "red", "3": "yellow", "4": "green", "5": "cyan", "6": "blue", "7": "bright_magenta" },
-    "padding": { "top": 1, "right": 3 }
+    "source": "~/.config/fastfetch/nook-logo.txt",
+    "color": {
+      "1": "38;2;245;168;201", "2": "38;2;249;196;154", "3": "38;2;226;181;240",
+      "4": "1;38;2;196;178;245", "5": "38;2;125;109;98", "6": "1;38;2;166;230;191",
+      "7": "1;38;2;148;220;214", "8": "1;38;2;163;205;245", "9": "1;38;2;196;178;245"
+    },
+    "padding": { "top": 1, "left": 1, "right": 4 }
   },
-  "display": { "separator": "  ", "key": { "width": 9 } },
+  "display": {
+    "separator": "  ",
+    "key": { "width": 9 },
+    "color": { "output": "38;2;246;236;228" },
+    "bar": {
+      "width": 12,
+      "char": { "elapsed": "█", "total": "░" },
+      "border": { "left": "[", "right": "]" },
+      "color": { "elapsed": "auto", "total": "38;2;74;63;56", "border": "38;2;125;109;98" }
+    },
+    "percent": {
+      "type": ["bar", "num"],
+      "color": { "green": "38;2;166;230;191", "yellow": "38;2;242;226;155", "red": "38;2;247;165;154" }
+    }
+  },
   "modules": [
-    "title", "separator",
-    { "type": "os",       "key": "OS",     "keyColor": "magenta" },
-    { "type": "kernel",   "key": "Kernel", "keyColor": "red" },
-    { "type": "de",       "key": "DE",     "keyColor": "yellow" },
-    { "type": "wm",       "key": "WM",     "keyColor": "green" },
-    { "type": "theme",    "key": "Theme",  "keyColor": "cyan" },
-    { "type": "icons",    "key": "Icons",  "keyColor": "blue" },
-    { "type": "terminal", "key": "Term",   "keyColor": "bright_magenta" },
-    { "type": "shell",    "key": "Shell",  "keyColor": "bright_green" },
-    { "type": "uptime",   "key": "Uptime", "keyColor": "bright_blue" },
-    "break", "colors"
+    { "type": "title", "format": "{#1;38;2;196;178;245}{user-name}{#38;2;125;109;98}@{#1;38;2;249;196;154}{host-name}" },
+    { "type": "custom", "format": "{#38;2;74;63;56}──────────────────────────────────────────" },
+    { "type": "os",       "key": "os",       "keyColor": "38;2;166;230;191", "format": "{pretty-name}" },
+    { "type": "kernel",   "key": "kernel",   "keyColor": "38;2;166;230;191" },
+    { "type": "uptime",   "key": "uptime",   "keyColor": "38;2;166;230;191" },
+    { "type": "de",       "key": "desktop",  "keyColor": "38;2;196;178;245", "format": "{pretty-name} {version}" },
+    { "type": "command",  "key": "theme",    "keyColor": "38;2;196;178;245",
+      "text": "k() { kreadconfig6 --file \"$1\" --group \"$2\" --key \"$3\" 2>/dev/null; }; printf '%s colours · %s icons · %s style' \"$(k kdeglobals General ColorScheme)\" \"$(k kdeglobals Icons Theme)\" \"$(k plasmarc Theme name)\"" },
+    { "type": "shell",    "key": "shell",    "keyColor": "38;2;196;178;245", "format": "{pretty-name} {version}" },
+    { "type": "cpu",      "key": "cpu",      "keyColor": "38;2;249;196;154", "temp": true },
+    { "type": "memory",   "key": "memory",   "keyColor": "38;2;249;196;154" },
+    { "type": "custom", "format": "{#38;2;245;168;201}███ {#38;2;247;165;154}███ {#38;2;249;196;154}███ {#38;2;242;226;155}███ {#38;2;166;230;191}███ {#38;2;148;220;214}███ {#38;2;163;205;245}███ {#38;2;196;178;245}███ {#38;2;226;181;240}███" }
   ]
 }

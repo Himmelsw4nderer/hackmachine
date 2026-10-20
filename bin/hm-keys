@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-# Print the Hackmachine shortcut cheat-sheet (the same list the wallpaper shows).
-# --window opens it in its own Konsole.
-share="${XDG_DATA_HOME:-$HOME/.local/share}/hackmachine"
-if [ "${1:-}" = "--window" ]; then
-  exec konsole --profile Hackmachine --hide-menubar --hide-tabbar --separate --hold -e "$0"
-fi
-python3 "$share/shortcuts.py" list "$share/shortcuts.conf"

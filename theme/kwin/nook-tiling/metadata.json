@@ -1,0 +1,12 @@
+{
+    "KPlugin": {
+        "Id": "nook-tiling",
+        "Name": "Nook tiling keys",
+        "Description": "Directional focus and move that cross to the next screen at the edge",
+        "Version": "1.0",
+        "License": "MIT"
+    },
+    "X-Plasma-API": "javascript",
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "KPackageStructure": "KWin/Script"
+}

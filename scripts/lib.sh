@@ -1,11 +1,11 @@
-# Shared helpers for the Hackmachine scripts. Source, don't execute.
+# Shared helpers for the Nook scripts. Source, don't execute.
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
-HM_STATE="$XDG_STATE_HOME/hackmachine"
-HM_SHARE="$XDG_DATA_HOME/hackmachine"
+NOOK_STATE="$XDG_STATE_HOME/nook"
+NOOK_SHARE="$XDG_DATA_HOME/nook"
 
 c_lav=$'\e[38;2;196;178;245m' c_mint=$'\e[38;2;166;230;191m'
 c_coral=$'\e[38;2;247;165;154m' c_butter=$'\e[38;2;242;226;155m'

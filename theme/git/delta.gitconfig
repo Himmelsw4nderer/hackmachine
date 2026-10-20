@@ -1,0 +1,29 @@
+# delta as git's pager, in the Nook palette. apply.sh only includes this when delta is
+# installed, so git keeps working without it.
+
+[core]
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	line-numbers = true
+	syntax-theme = Nook
+	file-style = "#c4b2f5" bold
+	file-decoration-style = "#4a3f38" ul
+	hunk-header-style = file line-number syntax
+	hunk-header-decoration-style = "#4a3f38" box
+	hunk-header-file-style = "#a3cdf5"
+	hunk-header-line-number-style = "#94dcd6"
+	minus-style = syntax "#392a27"
+	minus-emph-style = syntax "#61443f"
+	plus-style = syntax "#2b2f29"
+	plus-emph-style = syntax "#415044"
+	line-numbers-minus-style = "#f7a59a"
+	line-numbers-plus-style = "#a6e6bf"
+	line-numbers-zero-style = "#7d6d62"
+	line-numbers-left-style = "#4a3f38"
+	line-numbers-right-style = "#4a3f38"
+	blame-palette = "#221d1a" "#2a2420"
+	merge-conflict-begin-symbol = ▼
+	merge-conflict-end-symbol = ▲

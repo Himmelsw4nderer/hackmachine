@@ -1,0 +1,12 @@
+[SddmGreeterTheme]
+Name=Nook
+Description=Nook login: dot grid, # clock, a terminal-style login card and the rainbow banner
+Author=Nook
+License=MIT
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=nook
+Theme-API=2.0
+QtVersion=6

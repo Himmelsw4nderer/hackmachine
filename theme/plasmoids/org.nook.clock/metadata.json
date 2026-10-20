@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [{ "Name": "Nook" }],
+        "Category": "Date and Time",
+        "Description": "Big ASCII-art clock in the Nook pastels",
+        "Icon": "clock",
+        "Id": "org.nook.clock",
+        "License": "GPL-3.0-or-later",
+        "Name": "Nook clock",
+        "Version": "1.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the Hackmachine Plasma style and Aurorae window decoration from the design tokens.
+"""Generate the Nook Plasma style and Aurorae window decoration from the design tokens.
 
 usage: themegen.py plasma DEST_DIR      → a Plasma/Theme package (panel, tasks, popups, tooltips)
        themegen.py aurorae DEST_DIR     → a KWin/Aurorae package ([_] [□] [x] window frame)
@@ -176,19 +176,19 @@ def plasma(dest):
     meta = {
         "KPackageStructure": "Plasma/Theme",
         "KPlugin": {
-            "Authors": [{"Name": "Hackmachine"}],
+            "Authors": [{"Name": "Nook"}],
             "Category": "Plasma Theme",
-            "Description": "Cozy pastel hacker style: cocoa panel, lavender focus, pastel accents",
+            "Description": "Cozy pastel style: cocoa panel, lavender focus, pastel accents",
             "EnabledByDefault": True,
-            "Id": "hackmachine",
+            "Id": "nook",
             "License": "GPL-3.0-or-later",
-            "Name": "Hackmachine",
+            "Name": "Nook",
             "Version": "1.0",
         },
         "X-Plasma-API-Minimum-Version": "6.0",
     }
     (dest / "metadata.json").write_text(json.dumps(meta, indent=4) + "\n")
-    # No "colors" file: Plasma then takes every colour from the Hackmachine colour scheme.
+    # No "colors" file: Plasma then takes every colour from the Nook colour scheme.
     (dest / "plasmarc").write_text("[Settings]\nFallbackTheme=default\n\n[ContrastEffect]\nenabled=false\n")
 
 
@@ -251,7 +251,7 @@ def aurorae(dest):
                  "shade", "help"):
         (dest / f"{kind}.svg").write_text(button(kind))
     rgb = lambda h: ",".join(str(int(h[i:i + 2], 16)) for i in (1, 3, 5))  # noqa: E731
-    (dest / "Hackmachinerc").write_text(f"""[General]
+    (dest / "Nookrc").write_text(f"""[General]
 ActiveTextColor={rgb(INK)}
 InactiveTextColor={rgb(MUTED)}
 TitleAlignment=Left
@@ -290,19 +290,19 @@ PaddingRight=0
     meta = {
         "KPackageStructure": "KWin/Aurorae",
         "KPlugin": {
-            "Authors": [{"Name": "Hackmachine"}],
+            "Authors": [{"Name": "Nook"}],
             "Category": "Plasma Window Decorations",
             "Description": "Cocoa title bar, lavender focus ring, [_] [□] [x] buttons",
             "EnabledByDefault": True,
-            "Id": "Hackmachine",
+            "Id": "Nook",
             "License": "GPL-3.0-or-later",
-            "Name": "Hackmachine",
+            "Name": "Nook",
             "Version": "1.0",
         },
     }
     (dest / "metadata.json").write_text(json.dumps(meta, indent=4) + "\n")
     (dest / "metadata.desktop").write_text(
-        "[Desktop Entry]\nName=Hackmachine\nX-KDE-PluginInfo-Name=Hackmachine\n"
+        "[Desktop Entry]\nName=Nook\nX-KDE-PluginInfo-Name=Nook\n"
         "X-KDE-PluginInfo-Version=1.0\nX-KDE-PluginInfo-License=GPL\n"
         "X-KDE-PluginInfo-EnabledByDefault=true\nX-Plasma-API=javascript\n"
         "X-KDE-ServiceTypes=KWin/Aurorae\n")

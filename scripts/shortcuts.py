@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Bind / unbind the Hackmachine global shortcuts from config/shortcuts.conf.
+"""Bind / unbind the Nook global shortcuts from config/shortcuts.conf.
 
-Each row with a command becomes ~/.local/share/applications/hackmachine-<slug>.desktop
+Each row with a command becomes ~/.local/share/applications/nook-<slug>.desktop
 plus a kglobalaccel "_launch" shortcut, registered live over D-Bus (and persisted by
 kglobalaccel in kglobalshortcutsrc), so no logout is needed. A command "kwin:Action[,Action…]"
 instead rebinds existing KWin actions (Krohnkite's among them); with several actions, the last
@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 APPS = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "applications"
-PREFIX = "hackmachine-"
+PREFIX = "nook-"
 
 MODS = {"meta": 0x10000000, "alt": 0x08000000, "ctrl": 0x04000000, "shift": 0x02000000}
 KEYS = {
@@ -31,7 +31,7 @@ ARROWS = {"←": "Left", "↑": "Up", "→": "Right", "↓": "Down"}
 # KWin actions whose keys the tiling rows take over (or that clash with Plasma defaults:
 # Krohnkite's Meta+. / Meta+, / Meta+I / Meta+D), cleared on bind. Meta+Alt+arrows already cross
 # screens, so KWin's Meta+Shift+←/→ (window to next/previous screen) make way for resizing. Krohnkite's directional
-# actions stay key-less: the hackmachine-tiling script calls them. The KWin ones get their
+# actions stay key-less: the nook-tiling script calls them. The KWin ones get their
 # defaults back on unbind.
 KWIN_FREE = [
     "Window Quick Tile Left", "Window Quick Tile Right",
@@ -119,7 +119,7 @@ def bind_kwin(rows):
 
 def unbind_kwin(conf):
     for action in KWIN_FREE:
-        if action.startswith(("Krohnkite", "Hackmachine")):
+        if action.startswith(("Krohnkite", "Nook")):
             continue
         r = accel("defaultShortcutKeys", kwin_id(action))
         m = re.fullmatch(r"\((\[.*\]),\)", r.stdout.strip())
@@ -134,17 +134,24 @@ def unbind_kwin(conf):
 def bind(conf, bin_dir):
     APPS.mkdir(parents=True, exist_ok=True)
     rows = parse(conf)
+    # launchers whose row is gone from the conf (an old nook-menu binding, say) are released first
+    current = {f"{PREFIX}{slug(r['label'])}.desktop" for r in rows if r["cmd"] and not r["cmd"].startswith("kwin:")}
+    for f in sorted(APPS.glob(f"{PREFIX}*.desktop")):
+        if f.name not in current:
+            accel("unregister", f.name, "_launch")
+            f.unlink()
+            print(f"  released {f.name}")
     # KWin's rows first: they move Krohnkite off keys the launchers need (Meta+Return).
     bind_kwin([r for r in rows if r["cmd"].startswith("kwin:")])
     for row in rows:
         if not row["cmd"] or row["cmd"].startswith("kwin:"):
             continue
-        cmd = re.sub(r"(^|\s)(hm-[\w-]+)", lambda m: m.group(1) + str(Path(bin_dir) / m.group(2)), row["cmd"])
+        cmd = re.sub(r"(^|\s)(nook-[\w-]+)", lambda m: m.group(1) + str(Path(bin_dir) / m.group(2)), row["cmd"])
         desktop = f"{PREFIX}{slug(row['label'])}.desktop"
-        label = f"Hackmachine: {row['label']}"
+        label = f"Nook: {row['label']}"
         (APPS / desktop).write_text(
             "[Desktop Entry]\nType=Application\n"
-            f"Name={label}\nExec={cmd}\nIcon=hackmachine\nNoDisplay=true\n"
+            f"Name={label}\nExec={cmd}\nIcon=nook\nNoDisplay=true\n"
             f"X-KDE-Shortcuts={row['keys']}\n")
         aid = action_id(desktop, label)
         accel("doRegister", aid)
@@ -168,7 +175,7 @@ COLORS = {"apps": (166, 230, 191), "session": (226, 181, 240), "windows": (163, 
 
 
 def show(conf):
-    """Pretty cheat-sheet for the terminal (hm-keys)."""
+    """Pretty cheat-sheet for the terminal (nook-keys)."""
     rows = parse(conf)
     muted = "\x1b[38;2;191;174;159m"
     off = "\x1b[0m"

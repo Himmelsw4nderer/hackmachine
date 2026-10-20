@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Nook: a plain line document for the Office category (replaces BeautyLine's Microsoft Office logo) -->
+  <g fill="none" stroke="#f2e29b" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M30 12 H76 L102 38 V108 A8 8 0 0 1 94 116 H34 A8 8 0 0 1 26 108 V20 A8 8 0 0 1 34 12 Z"/>
+    <path d="M74 14 V34 A6 6 0 0 0 80 40 H100"/>
+    <path d="M44 62 H84 M44 79 H84 M44 96 H68"/>
+  </g>
+</svg>

@@ -1,0 +1,42 @@
+# Nook git colours and a few aliases. apply.sh includes this from ~/.gitconfig
+# ([include] path = …); uninstall.sh takes the include out again. Your own settings still apply.
+
+[color]
+	ui = auto
+[color "status"]
+	header = "#7d6d62"
+	branch = "#c4b2f5" bold
+	localBranch = "#c4b2f5" bold
+	remoteBranch = "#a3cdf5"
+	added = "#a6e6bf"
+	changed = "#f2e29b"
+	untracked = "#f5a8c9"
+	unmerged = "#f7a59a" bold
+[color "branch"]
+	current = "#c4b2f5" bold
+	local = "#f6ece4"
+	remote = "#a3cdf5"
+	upstream = "#94dcd6"
+[color "diff"]
+	meta = "#c4b2f5"
+	frag = "#94dcd6"
+	func = "#a3cdf5"
+	old = "#f7a59a"
+	new = "#a6e6bf"
+	whitespace = "#f7a59a" reverse
+[color "decorate"]
+	HEAD = "#f5a8c9" bold
+	branch = "#a6e6bf"
+	remoteBranch = "#a3cdf5"
+	tag = "#f9c49a"
+
+[alias]
+	# λ git lg: a one-line graph in the pastels
+	lg = "log --graph --abbrev-commit --format='%C(#c4b2f5)%h%C(reset) %C(#f6ece4)%s%C(reset)%C(auto)%d%C(reset) %C(#7d6d62)· %an · %ar%C(reset)'"
+	st = status --short --branch
+	last = log -1 --stat
+
+[merge]
+	conflictStyle = zdiff3
+[diff]
+	colorMoved = default

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lay out the Hackmachine desktop widgets on every screen, around what the wallpaper draws.
+"""Lay out the Nook desktop widgets on every screen, around what the wallpaper draws.
 
 Reads one line per screen on stdin:  <containment id> <screen> <width> <height> <wallpaper.json>
 and prints a Plasma script that (re)places the clock, system and apps cards on each desktop.
@@ -21,7 +21,7 @@ spot while they fade out, and Plasma would shove the new ones aside.
 import json
 import sys
 
-WIDGETS = ("org.hackmachine.clock", "org.hackmachine.sys", "org.hackmachine.apps")
+WIDGETS = ("org.nook.clock", "org.nook.sys", "org.nook.apps")
 
 
 GRID = 16
@@ -42,9 +42,9 @@ def landscape(w, h, box, reserve):
     # the system card stops above the banner if the banner reaches under it
     bottom = down(by - GAP) if bx < right else down(h - reserve - left)
     return [
-        ("org.hackmachine.clock", left, cy, clock_w, ch),
-        ("org.hackmachine.apps", left + clock_w + GAP, cy, apps_w, ch),
-        ("org.hackmachine.sys", left, wy, right - left, max(10 * GRID, bottom - wy)),
+        ("org.nook.clock", left, cy, clock_w, ch),
+        ("org.nook.apps", left + clock_w + GAP, cy, apps_w, ch),
+        ("org.nook.sys", left, wy, right - left, max(10 * GRID, bottom - wy)),
     ]
 
 
@@ -58,7 +58,7 @@ def portrait(w, h, box, reserve):
     sizes = {"clock": clock_h, "apps": apps_h, "sys": avail - clock_h - apps_h}
     y, out = top, []
     for name in ("clock", "apps", "sys"):
-        out.append((f"org.hackmachine.{name}", x, y, cw, sizes[name]))
+        out.append((f"org.nook.{name}", x, y, cw, sizes[name]))
         y += sizes[name] + GAP
     return out
 

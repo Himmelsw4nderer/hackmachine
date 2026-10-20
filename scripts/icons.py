@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build a monochrome-per-icon, colourful-as-a-set icon theme.
 
-Every SVG in SRC is repainted in ONE pastel, chosen by what the icon is about (the Hackmachine
+Every SVG in SRC is repainted in ONE pastel, chosen by what the icon is about (the Nook
 rule "one hue per category, everywhere"): media pink, security coral, time/transfer peach,
 files butter, dev mint, comms teal, network sky, system lavender, session lilac.
 
@@ -35,7 +35,7 @@ RULES = [
                  "emblem-important kill window-close close"),
     ("lilac",    "user avatar account system-log-out system-shutdown system-reboot system-suspend "
                  "system-hibernate system-switch-user log-out logout shutdown reboot power session "
-                 "start-here hackmachine"),
+                 "start-here nook"),
     ("mint",     "battery text-x application-x-shellscript application-x-executable application-x-python "
                  "code vscode vscodium visual-studio ide git github gitlab python java rust cargo nodejs "
                  "npm javascript debug develop qtcreator kdevelop jetbrains idea pycharm clion webstorm "
@@ -168,7 +168,7 @@ def repaint(svg, hue, keep_semantic):
         return m.group(1) + hue
 
     # Keep Plasma from re-tinting the icon with the colour scheme: rename the magic stylesheet id.
-    svg = svg.replace('id="current-color-scheme"', 'id="hackmachine-scheme"')
+    svg = svg.replace('id="current-color-scheme"', 'id="nook-scheme"')
     # Repaint the stylesheet classes first, then protect them from the generic pass.
     styles = []
 
@@ -232,7 +232,7 @@ def main():
     text = re.sub(r"^Comment=.*$", "", text, flags=re.M)
     text = re.sub(r"^Inherits=.*$", f"Inherits={inherits}", text, count=1, flags=re.M)
     text = re.sub(r"^FollowsColorScheme=.*$", "FollowsColorScheme=false", text, flags=re.M)
-    text = text.replace("[Icon Theme]", f"[Icon Theme]\nComment=Hackmachine pastel icons (generated)", 1)
+    text = text.replace("[Icon Theme]", f"[Icon Theme]\nComment=Nook pastel icons (generated)", 1)
     idx.write_text(text)
     print("  " + "  ".join(f"{h}:{n}" for h, n in sorted(counts.items(), key=lambda x: -x[1])))
 

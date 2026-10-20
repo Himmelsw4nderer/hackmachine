@@ -1,0 +1,7 @@
+# Nook ripgrep defaults (RIPGREP_CONFIG_PATH points here)
+--smart-case
+--colors=path:fg:0xa3,0xcd,0xf5
+--colors=line:fg:0x7d,0x6d,0x62
+--colors=column:fg:0x7d,0x6d,0x62
+--colors=match:fg:0xf5,0xa8,0xc9
+--colors=match:style:bold

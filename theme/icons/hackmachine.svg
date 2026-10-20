@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- Hackmachine start icon: a lambda in a hexagon, drawn like the BeautyLine line set
-       (one pastel, round caps, ~6/64 stroke). Lilac = session. -->
-  <g fill="none" stroke="#e2b5f0" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M32 5.5 L55 18.75 V45.25 L32 58.5 L9 45.25 V18.75 Z"/>
-    <path d="M23.5 19.5 h3.5 L41.5 45"/>
-    <path d="M33 31.5 L23.5 45"/>
-  </g>
-</svg>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Render the Hackmachine wallpaper: dot grid, faint skull, a key cheat-sheet built from
-config/shortcuts.conf, a system card and the rainbow HACKMACHINE banner.
+"""Render the Nook wallpaper: dot grid, faint skull, a key cheat-sheet built from
+config/shortcuts.conf, a system card and the rainbow NOOK banner.
 
 usage: wallpaper.py CONF OUT.svg WIDTHxHEIGHT "Font Family" [panel_height] [--no-skull]
 
@@ -26,12 +26,12 @@ PINK, CORAL, PEACH, BUTTER, MINT, TEAL, SKY, LAVENDER, LILAC = HUES
 GROUP_HUE = {"apps": MINT, "session": LILAC, "windows": SKY, "desktop": LAVENDER, "tools": PEACH}
 
 BANNER = """\
-██╗  ██╗ █████╗  ██████╗██╗  ██╗███╗   ███╗ █████╗  ██████╗██╗  ██╗██╗███╗   ██╗███████╗
-██║  ██║██╔══██╗██╔════╝██║ ██╔╝████╗ ████║██╔══██╗██╔════╝██║  ██║██║████╗  ██║██╔════╝
-███████║███████║██║     █████╔╝ ██╔████╔██║███████║██║     ███████║██║██╔██╗ ██║█████╗
-██╔══██║██╔══██║██║     ██╔═██╗ ██║╚██╔╝██║██╔══██║██║     ██╔══██║██║██║╚██╗██║██╔══╝
-██║  ██║██║  ██║╚██████╗██║  ██╗██║ ╚═╝ ██║██║  ██║╚██████╗██║  ██║██║██║ ╚████║███████╗
-╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚══════╝""".splitlines()
+███╗   ██╗ ██████╗  ██████╗ ██╗  ██╗
+████╗  ██║██╔═══██╗██╔═══██╗██║ ██╔╝
+██╔██╗ ██║██║   ██║██║   ██║█████╔╝ 
+██║╚██╗██║██║   ██║██║   ██║██╔═██╗ 
+██║ ╚████║╚██████╔╝╚██████╔╝██║  ██╗
+╚═╝  ╚═══╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝""".splitlines()
 
 SKULL = """\
     _______
@@ -157,7 +157,7 @@ def main():
     svg.rect(cx, cy, card_w, card_h, fill=BG100, stroke=LINE, r=6 * s, sw=max(1, s), opacity=0.94)
     svg.rect(cx, cy, 3 * s, card_h, fill=LAVENDER)
     svg.text(cx + pad, cy + 34 * s, "KEYS // CHEATSHEET", 12 * s, LAVENDER, 700, spacing=1.6 * s)
-    svg.text(cx + card_w - pad, cy + 34 * s, "λ hm-keys  ·  meta+/", 12 * s, MUTED, anchor="end")
+    svg.text(cx + card_w - pad, cy + 34 * s, "λ nook-keys  ·  meta+/", 12 * s, MUTED, anchor="end")
     svg.add(f'<line x1="{cx+pad:.1f}" y1="{cy+header_h-8*s:.1f}" x2="{cx+card_w-pad:.1f}" '
             f'y2="{cy+header_h-8*s:.1f}" stroke="{LINE}" stroke-width="{max(1, s):.1f}" stroke-dasharray="{4*s:.1f} {4*s:.1f}"/>')
 
@@ -187,7 +187,7 @@ def main():
         (LILAC, f"{user}@{host}"),
         (SKY, osrel().lower()),
         (LAVENDER, f"kernel {platform.release()}"),
-        (MINT, "λ ~/ > hack the machine"),
+        (MINT, "λ ~/ > make yourself at home"),
     ]
     sy0 = cy + card_h + 2 * GRID
     sc_h = grow(54 * s + len(sys_lines) * 26 * s + 40 * s)
@@ -216,7 +216,7 @@ def main():
         for i, line in enumerate(SKULL):
             svg.text(sx, sy + i * fs * 1.25, line, fs, FAINT, opacity=0.55)
 
-    bf = min(22 * s, (W * (0.9 if portrait else 0.55)) / (len(BANNER[0]) * ADV))
+    bf = min(32 * s, (W * (0.9 if portrait else 0.55)) / (len(BANNER[0]) * ADV))
     bw = len(BANNER[0]) * bf * ADV
     lh = bf * 1.18
     bx = (W - bw) / 2 if portrait else W - bw - 48 * s

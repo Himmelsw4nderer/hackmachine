@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Point Zed at the Hackmachine theme and the monospace font, keeping the rest of settings.json.
+"""Point Zed at the Nook theme and the monospace font, keeping the rest of settings.json.
 
 usage: zed.py SETTINGS_JSON FONT
 
@@ -82,7 +82,7 @@ def top_level(s):
 
 
 def main(path, font):
-    want = {"theme": "Hackmachine"}
+    want = {"theme": "Nook"}
     if font != "Monospace":
         want |= {"buffer_font_family": font, "ui_font_family": font}
     p = Path(path)
