@@ -85,7 +85,7 @@ rm -rf "$XDG_DATA_HOME/kwin/scripts/krohnkite" "$XDG_DATA_HOME/kwin/scripts/nook
        "$XDG_DATA_HOME/plasma/desktoptheme/nook" "$XDG_DATA_HOME/icons/Nook" \
        "$XDG_DATA_HOME"/plasma/plasmoids/org.nook.{apps,clock,sys} \
        "$XDG_DATA_HOME/icons/Nook-Breeze" "$XDG_DATA_HOME/icons/Nook-Cursors"
-qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 || true
+gdbus call --session --dest org.kde.KWin --object-path /KWin --method org.kde.KWin.reconfigure >/dev/null 2>&1 || true
 
 # the login screen is system-wide, so this part asks for sudo
 [ -e /etc/sddm.conf.d/zz-nook.conf ] && { "$REPO/scripts/sddm.sh" --remove || warn "login screen left as it is"; }

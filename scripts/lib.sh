@@ -38,8 +38,17 @@ plasma_eval() {
   local js=$1
   if have qdbus6; then qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$js"
   elif have qdbus; then qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$js"
-  else gdbus call --session --dest org.kde.plasmashell --object-path /PlasmaShell \
-         --method org.kde.PlasmaShell.evaluateScript "$js" | python3 -c 'import ast,sys; print(ast.literal_eval(sys.stdin.read())[0], end="")'; fi
+  else
+    # gdbus parses each argument as GVariant text, which mangles JavaScript, so hand it a quoted
+    # string literal. It prints a GVariant tuple, ('…',), and nothing when plasmashell isn't
+    # answering (e.g. mid-restart), so fail like qdbus would instead of handing Python "".
+    local out
+    out=$(gdbus call --session --dest org.kde.plasmashell --object-path /PlasmaShell \
+            --method org.kde.PlasmaShell.evaluateScript \
+            "$(python3 -c 'import json,sys; print(json.dumps(sys.argv[1], ensure_ascii=False))' "$js")") || return 1
+    [ -n "$out" ] || return 1
+    python3 -c 'import ast,sys; print(ast.literal_eval(sys.argv[1])[0], end="")' "$out"
+  fi
 }
 
 # Best installed monospace family: plain JetBrains Mono, then the Nerd Font build.
